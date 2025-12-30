@@ -57,20 +57,16 @@ SmartLists features a modern web-based configuration interface with four main ta
     </p>
 </div>
 
-## 📚 Documentation
+## 📖 Documentation
 
-<div align="center">
-
-### 📖 **[View Full Documentation →](https://jellyfin-smartlists-plugin.dinsten.se)**
+### **[View Full Documentation →](https://jellyfin-smartlists-plugin.dinsten.se)**
 
 Complete guide with installation instructions, detailed field descriptions, operators, examples, advanced configuration, and more!
 
-</div>
-
 ## 💬 Support & Feedback
 
-- **🐛 Bug Reports & Feature Requests**: Please use the [Issues tab](https://github.com/jyourstone/jellyfin-smartlists-plugin/issues) to report bugs or suggest new features.
-- **❓ Community Support & General Help**: For support questions or general help, please use [Discussions](https://github.com/jyourstone/jellyfin-smartlists-plugin/discussions).
+- **Bug Reports & Feature Requests**: Please use the [Issues tab](https://github.com/jyourstone/jellyfin-smartlists-plugin/issues) to report bugs or suggest new features.
+- **Community Support & General Help**: For support questions or general help, please use [Discussions](https://github.com/jyourstone/jellyfin-smartlists-plugin/discussions).
 
 ## 📦 How to Install
 
