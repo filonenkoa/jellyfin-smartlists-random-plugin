@@ -10,21 +10,19 @@
 
 Create smart, rule-based playlists and **collections** in Jellyfin.
 
-This plugin allows you to create dynamic playlists and collections based on a set of rules, which will automatically update as your library changes.
+This plugin allows you to create dynamic playlists and collections based on a set of rules, which will automatically update as your library changes. It features a modern web-based interface for easy list management - no technical knowledge required.
 
 **Requires Jellyfin version `10.11.0` and newer.**
 
 ## ✨ Features
 
-- 🚀 **Modern Jellyfin Support** - Built for newer Jellyfin versions with improved compatibility
-- 🎨 **Modern Web Interface** - A full-featured UI to create, manage and view status for smart playlists and collections
-- ✏️ **Edit Lists** - Modify existing smart playlists and collections directly from the UI
-- 👥 **User Selection** - Choose which user should own a playlist or collection with an intuitive dropdown
-- 🎯 **Flexible Rules** - Build simple or complex rules with an intuitive builder
-- 🔄 **Automatic Updates** - Playlists and collections refresh automatically on library updates or via scheduled tasks
-- 📊 **Refresh Status & Statistics** - Monitor ongoing refresh operations with real-time progress, view refresh history, and track statistics for all your lists
-- 📦 **Export/Import** - Export all lists to a ZIP file for backup or transfer between Jellyfin instances
-- 🎵 **Media Types** - Works with all Jellyfin media types
+- **Modern Web Interface** - A full-featured UI to create, manage and view status for smart playlists and collections
+- **User Selection** - Choose which user(s) should own a playlist or collection with an intuitive dropdown
+- **Flexible Rules** - Build simple or complex rules with an intuitive builder
+- **Automatic Updates** - Playlists and collections refresh automatically on library updates, playback status changes, or via scheduled tasks
+- **Refresh Status & Statistics** - Monitor ongoing refresh operations with real-time progress, view refresh history, and track statistics for all your lists
+- **Media Types** - Works with all Jellyfin media types
+- **And more** - [View the documentation](https://jellyfin-smartlists-plugin.dinsten.se) to see all features
 
 ## 🚀 Quick Start
 
@@ -84,33 +82,6 @@ https://raw.githubusercontent.com/jyourstone/jellyfin-plugin-manifest/main/manif
 3. Restart Jellyfin
 
 Complete installation instructions can be found [in the documentation](https://jellyfin-smartlists-plugin.dinsten.se/getting-started/installation/).
-
-## 📋 Overview
-
-This plugin creates smart playlists and collections that automatically update based on rules you define, such as:
-
-- **Unplayed movies** from specific genres
-- **Recently added** series or episodes
-- **Next unwatched episodes** for "Continue Watching" playlists
-- **High-rated** content from certain years
-- **Music** from specific artists or albums
-- **Tagged content** like "Christmas", "Kids", or "Documentaries"
-- And much more!
-
-The plugin features a modern web-based interface for easy list management - no technical knowledge required.
-
-### Supported Media Types
-
-SmartLists works with all media types supported by Jellyfin:
-
-- **🎬 Movie** - Individual movie files
-- **📺 Episode** - Individual TV show episodes
-- **🎵 Audio (Music)** - Music tracks and albums
-- **🎬 Music Video** - Music video files
-- **📹 Video (Home Video)** - Personal home videos and recordings
-- **📸 Photo (Home Photo)** - Personal photos and images
-- **📚 Book** - eBooks, comics, and other readable content
-- **🎧 Audiobook** - Spoken word audio books
 
 ## 🙏 Credits
 
