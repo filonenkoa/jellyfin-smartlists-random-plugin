@@ -439,21 +439,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Shared
                 user,
                 playlistSpecificMedia,
                 refreshCache,
-                async (updatedDto) =>
-                {
-                    // Preserve CustomImagePath from storage before saving (in case it was updated during refresh)
-                    if (!string.IsNullOrEmpty(updatedDto.Id) && Guid.TryParse(updatedDto.Id, out var dtoGuid))
-                    {
-                        var latestDto = await playlistStore.GetByIdAsync(dtoGuid);
-                        if (latestDto != null && !string.IsNullOrEmpty(latestDto.CustomImagePath))
-                        {
-                            updatedDto.CustomImagePath = latestDto.CustomImagePath;
-                            _logger.LogDebug("Preserved CustomImagePath for playlist {PlaylistName}: {CustomImagePath}", 
-                                updatedDto.Name, updatedDto.CustomImagePath);
-                        }
-                    }
-                    await playlistStore.SaveAsync(updatedDto);
-                },
+                async (updatedDto) => await playlistStore.SaveAsync(updatedDto),
                 progressCallback,
                 cancellationToken);
 
@@ -529,21 +515,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Shared
                 ownerUser,
                 collectionSpecificMedia,
                 refreshCache,
-                async (updatedDto) => 
-                {
-                    // Preserve CustomImagePath from storage before saving (in case it was updated during refresh)
-                    if (!string.IsNullOrEmpty(updatedDto.Id) && Guid.TryParse(updatedDto.Id, out var dtoGuid))
-                    {
-                        var latestDto = await collectionStore.GetByIdAsync(dtoGuid);
-                        if (latestDto != null && !string.IsNullOrEmpty(latestDto.CustomImagePath))
-                        {
-                            updatedDto.CustomImagePath = latestDto.CustomImagePath;
-                            _logger.LogDebug("Preserved CustomImagePath for collection {CollectionName}: {CustomImagePath}", 
-                                updatedDto.Name, updatedDto.CustomImagePath);
-                        }
-                    }
-                    await collectionStore.SaveAsync(updatedDto);
-                },
+                async (updatedDto) => await collectionStore.SaveAsync(updatedDto),
                 progressCallback,
                 cancellationToken);
 
