@@ -1021,14 +1021,6 @@ namespace Jellyfin.Plugin.SmartLists.Core
                         {
                             ruleBlockOrderDesc.GroupMappings = _itemGroupMappings;
                         }
-                        else if (order is Orders.RuleBlockOrderInterleaved ruleBlockOrderInterleaved)
-                        {
-                            ruleBlockOrderInterleaved.GroupMappings = _itemGroupMappings;
-                        }
-                        else if (order is Orders.RuleBlockOrderInterleavedDesc ruleBlockOrderInterleavedDesc)
-                        {
-                            ruleBlockOrderInterleavedDesc.GroupMappings = _itemGroupMappings;
-                        }
                     }
 
                     // Apply multiple orders in cascade
@@ -1104,9 +1096,7 @@ namespace Jellyfin.Plugin.SmartLists.Core
         {
             return Orders?.Any(order => 
                 order is Orders.RuleBlockOrder || 
-                order is Orders.RuleBlockOrderDesc ||
-                order is Orders.RuleBlockOrderInterleaved ||
-                order is Orders.RuleBlockOrderInterleavedDesc) == true;
+                order is Orders.RuleBlockOrderDesc) == true;
         }
 
         private bool NeedsGroupTracking()
@@ -1152,7 +1142,9 @@ namespace Jellyfin.Plugin.SmartLists.Core
                 }
 
                 // Apply sorting and limits per group, then combine
-                var limitedItems = new HashSet<Guid>(); // Track which items to include (prevent duplicates)
+                // Track globally consumed items so duplicate blocks pull different items from the same pool
+                // Example: Two "crowd" blocks with MaxItems=1 each get the 1st and 2nd crowd episode
+                var consumedItems = new HashSet<Guid>();
                 var resultList = new List<BaseItem>();
 
                 for (int groupIndex = 0; groupIndex < ExpressionSets.Count; groupIndex++)
@@ -1176,23 +1168,41 @@ namespace Jellyfin.Plugin.SmartLists.Core
                     //   but per-group limits are primarily designed for Rule Block scenarios.
                     var sortedGroupItems = ApplyMultipleOrders(groupItems, user, userDataManager, logger, refreshCache).ToList();
 
+                    // Filter out items that were already consumed by previous blocks
+                    // This allows duplicate blocks to pull the "next" items from the same pool
+                    var availableItems = sortedGroupItems.Where(item => !consumedItems.Contains(item.Id)).ToList();
+
+                    logger?.LogDebug("Rule group {GroupIndex} has {Available} available items after filtering consumed items ({Consumed} already used)",
+                        groupIndex, availableItems.Count, sortedGroupItems.Count - availableItems.Count);
+
                     // Apply per-group limit if configured
                     var groupMaxItems = group.MaxItems ?? 0;
-                    if (groupMaxItems > 0 && sortedGroupItems.Count > groupMaxItems)
+                    List<BaseItem> selectedItems;
+                    if (groupMaxItems > 0 && availableItems.Count > groupMaxItems)
                     {
-                        sortedGroupItems = sortedGroupItems.Take(groupMaxItems).ToList();
-                        logger?.LogDebug("Rule group {GroupIndex} limited from {Original} to {Limited} items", 
-                            groupIndex, groupItems.Count, sortedGroupItems.Count);
+                        selectedItems = availableItems.Take(groupMaxItems).ToList();
+                        logger?.LogDebug("Rule group {GroupIndex} limited from {Available} to {Limited} items", 
+                            groupIndex, availableItems.Count, selectedItems.Count);
+                    }
+                    else
+                    {
+                        selectedItems = availableItems;
                     }
 
-                    // Add items to result (avoiding duplicates if an item matched multiple groups)
-                    foreach (var item in sortedGroupItems)
+                    // Mark these items as consumed and add to result
+                    // Update group mappings to reflect which block contributed this item
+                    // This ensures Rule Block Order sorts correctly after per-group limiting
+                    foreach (var item in selectedItems)
                     {
-                        if (limitedItems.Add(item.Id))
-                        {
-                            resultList.Add(item);
-                        }
+                        consumedItems.Add(item.Id);
+                        resultList.Add(item);
+                        
+                        // Update the group mapping to show this item was contributed by this specific block
+                        // This overrides the original multi-group mapping (e.g., item matching both "crowd" and "german")
+                        _itemGroupMappings[item.Id] = new List<int> { groupIndex };
                     }
+
+                    logger?.LogDebug("Rule group {GroupIndex} contributed {Count} items to result", groupIndex, selectedItems.Count);
                 }
 
                 logger?.LogDebug("Per-group limiting: {Original} items → {Limited} items across {Groups} groups",
@@ -1770,14 +1780,6 @@ namespace Jellyfin.Plugin.SmartLists.Core
                 return Orders[0].OrderBy(items, user, userDataManager, logger, refreshCache);
             }
 
-            // Special handling: If the first order is Rule Block Order Interleaved, 
-            // apply secondary sorts within each block before interleaving
-            if (Orders[0] is Orders.RuleBlockOrderInterleaved || Orders[0] is Orders.RuleBlockOrderInterleavedDesc)
-            {
-                logger?.LogDebug("Rule Block Order Interleaved detected as primary sort with {SecondaryCount} secondary sorts", Orders.Count - 1);
-                return ApplyInterleavedOrderWithSecondarySorts(items, user, userDataManager, logger, refreshCache);
-            }
-
             // Use the common sorting helper for multi-sort scenarios
             return ApplySortingCore(items.ToList(), Orders, user, userDataManager, logger, refreshCache);
         }
@@ -1871,126 +1873,6 @@ namespace Jellyfin.Plugin.SmartLists.Core
         }
 
         /// <summary>
-        /// Applies Rule Block Order Interleaved with secondary sorts.
-        /// Secondary sorts are applied within each block before interleaving.
-        /// This creates a properly interleaved result where items from each block are sorted.
-        /// 
-        /// Performance note: This method performs N separate sort operations (one per group).
-        /// For typical playlists (2-5 groups, hundreds of items), this is efficient.
-        /// If performance becomes an issue with many groups, consider profiling and optimization.
-        /// </summary>
-        private IEnumerable<BaseItem> ApplyInterleavedOrderWithSecondarySorts(IEnumerable<BaseItem> items, User user, IUserDataManager? userDataManager, ILogger? logger, RefreshQueueService.RefreshCache refreshCache)
-        {
-            var interleavedOrder = Orders[0]; // First order is Rule Block Order Interleaved (already validated)
-            var secondaryOrders = Orders.Skip(1).ToList();
-
-            logger?.LogDebug("Applying Rule Block Order Interleaved with {Count} secondary sorts within each block", secondaryOrders.Count);
-
-            if (_itemGroupMappings.Count == 0)
-            {
-                logger?.LogWarning("No group mappings available for interleaved sorting, returning unsorted items");
-                return items;
-            }
-
-            // Group items by their lowest matching group index
-            var itemsByGroup = new Dictionary<int, List<BaseItem>>();
-            
-            foreach (var item in items)
-            {
-                if (_itemGroupMappings.TryGetValue(item.Id, out var groups) && groups.Count > 0)
-                {
-                    var lowestGroup = groups.Min();
-                    if (!itemsByGroup.TryGetValue(lowestGroup, out var groupList))
-                    {
-                        groupList = new List<BaseItem>();
-                        itemsByGroup[lowestGroup] = groupList;
-                    }
-                    groupList.Add(item);
-                }
-            }
-
-            // Apply secondary sorts within each group
-            var sortedItemsByGroup = new Dictionary<int, List<BaseItem>>();
-            foreach (var kvp in itemsByGroup)
-            {
-                var groupIndex = kvp.Key;
-                var groupItems = kvp.Value;
-
-                if (secondaryOrders.Count > 0)
-                {
-                    logger?.LogDebug("Applying {Count} secondary sorts to {ItemCount} items in group {GroupIndex}",
-                        secondaryOrders.Count, groupItems.Count, groupIndex);
-
-                    // Apply secondary sorts using the existing multi-sort logic
-                    var sortedItems = ApplySecondarySorts(groupItems, secondaryOrders, user, userDataManager, logger, refreshCache);
-                    sortedItemsByGroup[groupIndex] = sortedItems.ToList();
-                }
-                else
-                {
-                    // No secondary sorts, keep original order
-                    sortedItemsByGroup[groupIndex] = groupItems;
-                }
-            }
-
-            // Determine group order based on ascending vs descending
-            bool isDescending = interleavedOrder is Orders.RuleBlockOrderInterleavedDesc;
-            var sortedGroupIndices = isDescending 
-                ? sortedItemsByGroup.Keys.OrderByDescending(k => k).ToList()
-                : sortedItemsByGroup.Keys.OrderBy(k => k).ToList();
-
-            logger?.LogDebug("Interleaving {GroupCount} groups in {Direction} order",
-                sortedGroupIndices.Count, isDescending ? "descending" : "ascending");
-
-            // Interleave items from each group in round-robin fashion
-            var result = new List<BaseItem>();
-            var groupIterators = new Dictionary<int, int>();
-            
-            // Initialize iterators - always start from the beginning to respect secondary sort order
-            // The "descending" only affects the order of blocks, not the iteration within blocks
-            foreach (var groupIndex in sortedGroupIndices)
-            {
-                groupIterators[groupIndex] = 0;
-            }
-
-            // Keep going until all groups are exhausted
-            var hasMoreItems = true;
-            while (hasMoreItems)
-            {
-                hasMoreItems = false;
-                
-                // Take one item from each group in order
-                foreach (var groupIndex in sortedGroupIndices)
-                {
-                    var groupItems = sortedItemsByGroup[groupIndex];
-                    var iterator = groupIterators[groupIndex];
-                    
-                    if (iterator < groupItems.Count)
-                    {
-                        result.Add(groupItems[iterator]);
-                        groupIterators[groupIndex]++;
-                        hasMoreItems = true;
-                    }
-                }
-            }
-
-            logger?.LogDebug("Interleaving complete: {ResultCount} items from {GroupCount} groups",
-                result.Count, sortedGroupIndices.Count);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Applies secondary sorts to a collection of items.
-        /// Used by interleaved ordering to sort within each block.
-        /// </summary>
-        private static IEnumerable<BaseItem> ApplySecondarySorts(List<BaseItem> items, List<Order> orders, User user, IUserDataManager? userDataManager, ILogger? logger, RefreshQueueService.RefreshCache refreshCache)
-        {
-            // Delegate to the shared sorting core logic
-            return ApplySortingCore(items, orders, user, userDataManager, logger, refreshCache);
-        }
-
-
-        /// <summary>
         /// Determines if an order is descending based on its type.
         /// </summary>
         private static bool IsDescendingOrder(Order order)
@@ -2012,7 +1894,6 @@ namespace Jellyfin.Plugin.SmartLists.Core
                    order is EpisodeNumberOrderDesc ||
                    order is TrackNumberOrderDesc ||
                    order is Orders.RuleBlockOrderDesc ||
-                   order is Orders.RuleBlockOrderInterleavedDesc ||
                    order is SimilarityOrder; // Similarity descending is the default,
         }
 
@@ -2796,8 +2677,6 @@ namespace Jellyfin.Plugin.SmartLists.Core
             { "Random", () => new RandomOrder() },
             { "Rule Block Order Ascending", () => new Orders.RuleBlockOrder() },
             { "Rule Block Order Descending", () => new Orders.RuleBlockOrderDesc() },
-            { "Rule Block Order Interleaved Ascending", () => new Orders.RuleBlockOrderInterleaved() },
-            { "Rule Block Order Interleaved Descending", () => new Orders.RuleBlockOrderInterleavedDesc() },
             { "NoOrder", () => new NoOrder() },
         };
 
