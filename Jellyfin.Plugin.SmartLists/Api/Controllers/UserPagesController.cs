@@ -139,8 +139,8 @@ namespace Jellyfin.Plugin.SmartLists.Api.Controllers
             color: #cccccc;
         }
         .info-box {
-            background-color: #1a1a1a;
-            border: 1px solid #333333;
+            background: var(--jf-palette-background-paper);
+            border: 1px solid var(--jf-palette-divider);
             border-radius: 8px;
             padding: 20px;
             margin-top: 30px;
