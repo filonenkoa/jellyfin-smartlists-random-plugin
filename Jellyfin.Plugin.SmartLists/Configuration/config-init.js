@@ -574,14 +574,14 @@
             if (multiSelectContainer) {
                 const options = page.querySelector('#userMultiSelectOptions');
                 if (options) {
-                    options.innerHTML = '<div class="multi-select-option" style="padding: 0.5em; color: #BB3932;">Error: ' + errorMessage + '</div>';
+                    options.innerHTML = '<div class="multi-select-option" style="padding: 0.5em; color: var(--jf-palette-error-main);">Error: ' + SmartLists.escapeHtml(errorMessage) + '</div>';
                 }
                 const display = page.querySelector('#userMultiSelectDisplay');
                 if (display) {
                     const placeholder = display.querySelector('.multi-select-placeholder');
                     if (placeholder) {
                         placeholder.textContent = 'Error loading users';
-                        placeholder.style.color = '#BB3932';
+                        placeholder.style.color = 'var(--jf-palette-error-main)';
                         placeholder.style.display = 'inline';
                     }
                 }
@@ -661,14 +661,14 @@
             
             const options = page.querySelector('#allowedUsersMultiSelectOptions');
             if (options) {
-                options.innerHTML = '<div class="multi-select-option" style="padding: 0.5em; color: #BB3932;">Error: ' + errorMessage + '</div>';
+                options.innerHTML = '<div class="multi-select-option" style="padding: 0.5em; color: var(--jf-palette-error-main);">Error: ' + SmartLists.escapeHtml(errorMessage) + '</div>';
             }
             const display = page.querySelector('#allowedUsersMultiSelectDisplay');
             if (display) {
                 const placeholder = display.querySelector('.multi-select-placeholder');
                 if (placeholder) {
                     placeholder.textContent = 'Error loading users';
-                    placeholder.style.color = '#BB3932';
+                    placeholder.style.color = 'var(--jf-palette-error-main)';
                 }
             }
         }
@@ -767,7 +767,7 @@
                     // Show error message to user
                     var container = page.querySelector('#playlist-list-container');
                     if (container) {
-                        container.innerHTML = '<p style="color: #ff6b6b;">Failed to load playlist list. Please refresh the page.</p>';
+                        container.innerHTML = '<p style="color: var(--jf-palette-error-main);">Failed to load playlist list. Please refresh the page.</p>';
                     }
                 }
             };
@@ -1560,16 +1560,14 @@
             optgroup {
                 font-weight: bold;
                 font-size: 0.9em;
-                color: #00a4dc;
-                background: rgba(255, 255, 255, 0.05);
+                background: var(--jf-palette-background-paper);
                 padding: 0.2em 0;
                 margin-top: 0.3em;
             }
-            
+
             optgroup option {
                 font-weight: normal;
                 font-size: 1em;
-                color: #e0e0e0;
                 background: inherit;
                 padding-left: 1em;
             }
@@ -1587,8 +1585,37 @@
             /* Style danger/delete buttons to be red */
             .SmartListsConfigurationPage .emby-button.danger,
             .SmartListsConfigurationPage .emby-button.button-delete {
-                background-color: #BB3932 !important;
-                border-color: #BB3932 !important;
+                background-color: var(--jf-palette-error-main) !important;
+                border-color: var(--jf-palette-error-main) !important;
+            }
+
+            /* Responsive rule rows for mobile */
+            @media (max-width: 768px) {
+                .rule-row .input-group {
+                    flex-wrap: wrap !important;
+                }
+
+                .rule-row .input-group .rule-field-select {
+                    flex: 1 1 calc(50% - 0.25em) !important;
+                    min-width: 0 !important;
+                }
+
+                .rule-row .input-group .rule-operator-select {
+                    flex: 1 1 calc(50% - 0.25em) !important;
+                    min-width: 0 !important;
+                }
+
+                .rule-row .input-group .rule-value-container {
+                    flex: 1 1 100% !important;
+                    order: 3 !important;
+                }
+
+                .rule-row .input-group .rule-actions {
+                    flex: 0 0 auto !important;
+                    order: 4 !important;
+                    margin-left: auto !important;
+                    margin-top: 0.5em !important;
+                }
             }
         `;
         document.head.appendChild(style);

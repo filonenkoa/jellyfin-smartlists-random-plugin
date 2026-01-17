@@ -39,7 +39,7 @@
             input = document.createElement('select');
             input.setAttribute('is', 'emby-select');
             input.className = 'emby-select-withcolor emby-select';
-            input.style.backgroundColor = '#2A2A2A';
+            // Let Jellyfin theme handle background color
             if (options) {
                 SmartLists.populateSelectElement(input, options);
             }
@@ -56,7 +56,7 @@
         separator.className = 'sort-separator';
         separator.style.textAlign = 'center';
         separator.style.margin = '0.75em 0';
-        separator.style.color = '#888';
+        separator.style.opacity = '0.6';
         separator.style.fontSize = '0.9em';
         separator.style.fontWeight = 'bold';
         separator.textContent = 'AND THEN';
@@ -204,8 +204,8 @@
             ignoreArticles = true;
         }
         
-        // Create box container
-        const box = SmartLists.createStyledElement('div', 'sort-box', SmartLists.STYLES.sortBox);
+        // Create box container with paperList class for theme-aware background
+        const box = SmartLists.createStyledElement('div', 'sort-box paperList', SmartLists.STYLES.sortBox);
         box.setAttribute('data-sort-id', sortId);
         
         // Create fields container
