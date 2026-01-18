@@ -400,7 +400,7 @@
     SmartLists.STYLES = {
         scheduleBox: {
             border: '1px solid var(--jf-palette-divider)',
-            padding: '1em 1.5em',
+            padding: '1em 3em 1em 1.5em',
             marginBottom: '1em',
             position: 'relative'
         },
@@ -427,28 +427,30 @@
         scheduleRemoveBtn: {
             padding: '0.3em 0.6em',
             fontSize: '1.3em',
-            border: '1px solid var(--jf-palette-divider)',
-            background: 'var(--jf-palette-action-hover)',
-            color: 'var(--jf-palette-text-secondary)',
+            border: 'none',
+            background: 'var(--jf-palette-error-main)',
+            color: 'var(--jf-palette-error-contrastText)',
             borderRadius: '4px',
             cursor: 'pointer',
             fontWeight: '500',
             lineHeight: '1',
             width: 'auto',
             minWidth: 'auto',
-            alignSelf: 'center',
-            marginLeft: 'auto'
+            position: 'absolute',
+            right: '0.75em',
+            top: '50%',
+            transform: 'translateY(-50%)'
         },
         sortBox: {
             border: '1px solid var(--jf-palette-divider)',
-            padding: '1em 1.5em',
+            padding: '1em 3em 1em 1.5em',
             marginBottom: '1em',
             position: 'relative'
         },
         sortFields: {
             display: 'flex',
             gap: '0.75em',
-            alignItems: 'flex-end',
+            alignItems: 'center',
             flexWrap: 'wrap'
         },
         sortField: {
@@ -466,18 +468,19 @@
         sortRemoveBtn: {
             padding: '0.3em 0.6em',
             fontSize: '1.3em',
-            border: '1px solid var(--jf-palette-divider)',
-            background: 'var(--jf-palette-action-hover)',
-            color: 'var(--jf-palette-text-secondary)',
+            border: 'none',
+            background: 'var(--jf-palette-error-main)',
+            color: 'var(--jf-palette-error-contrastText)',
             borderRadius: '4px',
             cursor: 'pointer',
             fontWeight: '500',
             lineHeight: '1',
             width: 'auto',
             minWidth: 'auto',
-            alignSelf: 'center',
-            marginLeft: 'auto',
-            opacity: '0.8'
+            position: 'absolute',
+            right: '0.75em',
+            top: '50%',
+            transform: 'translateY(-50%)'
         },
         modal: {
             container: {

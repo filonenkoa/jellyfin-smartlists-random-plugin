@@ -377,7 +377,9 @@
         useChildValuesField.container.style.display = shouldShowUseChildValues ? '' : 'none';
         fieldsContainer.appendChild(useChildValuesField.container);
 
-        // Remove button
+        box.appendChild(fieldsContainer);
+
+        // Remove button (positioned absolutely within box)
         const removeBtn = SmartLists.createStyledElement('button', 'sort-remove-btn', SmartLists.STYLES.sortRemoveBtn);
         removeBtn.type = 'button';
         removeBtn.textContent = '\u00D7'; // × symbol
@@ -385,9 +387,7 @@
         removeBtn.addEventListener('click', function() {
             SmartLists.removeSortBox(page, box);
         });
-        fieldsContainer.appendChild(removeBtn);
-
-        box.appendChild(fieldsContainer);
+        box.appendChild(removeBtn);
 
         // Add event listener to sync Sort Order UI and checkbox visibility when Sort By changes
         sortByField.input.addEventListener('change', function() {

@@ -109,7 +109,9 @@
         intervalField.container.style.display = 'none';
         fieldsContainer.appendChild(intervalField.container);
         
-        // Create remove button (X icon at end of fields row)
+        box.appendChild(fieldsContainer);
+
+        // Create remove button (positioned absolutely within box)
         const removeBtn = SmartLists.createStyledElement('button', 'schedule-remove-btn', SmartLists.STYLES.scheduleRemoveBtn);
         removeBtn.type = 'button';
         removeBtn.textContent = '×';
@@ -117,9 +119,7 @@
         removeBtn.addEventListener('click', function() {
             SmartLists.removeScheduleBox(page, box);
         });
-        fieldsContainer.appendChild(removeBtn);
-        
-        box.appendChild(fieldsContainer);
+        box.appendChild(removeBtn);
         
         // Add change listener to trigger to update field visibility
         triggerField.input.addEventListener('change', function() {
@@ -524,7 +524,9 @@
             }
         };
         
-        // Create remove button (X icon at end of fields row) - matches refresh schedule styling
+        box.appendChild(fieldsContainer);
+
+        // Create remove button (positioned absolutely within box) - matches refresh schedule styling
         const removeBtn = SmartLists.createStyledElement('button', 'visibility-schedule-remove-btn', SmartLists.STYLES.scheduleRemoveBtn);
         removeBtn.type = 'button';
         removeBtn.textContent = '×';
@@ -532,9 +534,7 @@
         removeBtn.addEventListener('click', function() {
             SmartLists.removeVisibilityScheduleBox(page, box);
         });
-        fieldsContainer.appendChild(removeBtn);
-        
-        box.appendChild(fieldsContainer);
+        box.appendChild(removeBtn);
         
         // Add event listener to trigger select to show/hide fields
         triggerField.input.addEventListener('change', function() {
