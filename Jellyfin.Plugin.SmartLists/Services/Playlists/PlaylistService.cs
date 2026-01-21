@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Jellyfin.Database.Implementations.Entities;
 using Jellyfin.Plugin.SmartLists;
 using Jellyfin.Plugin.SmartLists.Core;
 using Jellyfin.Plugin.SmartLists.Core.Constants;
+using Jellyfin.Plugin.SmartLists.Core.Enums;
 using Jellyfin.Plugin.SmartLists.Core.Models;
 using Jellyfin.Plugin.SmartLists.Services.Abstractions;
 using Jellyfin.Plugin.SmartLists.Services.Shared;
@@ -17,6 +19,7 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Playlists;
 using MediaBrowser.Controller.Providers;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.IO;
 using MediaBrowser.Model.Playlists;
 using Microsoft.Extensions.Logging;
@@ -35,6 +38,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
         private readonly IUserDataManager _userDataManager;
         private readonly ILogger<PlaylistService> _logger;
         private readonly IProviderManager _providerManager;
+        private readonly SmartListImageService? _imageService;
 
         public PlaylistService(
             IUserManager userManager,
@@ -42,7 +46,8 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
             IPlaylistManager playlistManager,
             IUserDataManager userDataManager,
             ILogger<PlaylistService> logger,
-            IProviderManager providerManager)
+            IProviderManager providerManager,
+            SmartListImageService? imageService = null)
         {
             _userManager = userManager;
             _libraryManager = libraryManager;
@@ -50,6 +55,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
             _userDataManager = userDataManager;
             _logger = logger;
             _providerManager = providerManager;
+            _imageService = imageService;
         }
 
 
@@ -556,8 +562,9 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
             try
             {
                 _logger.LogDebug("Disabling smart playlist: {PlaylistName}", dto.Name);
-                // Use the helper method to delete all Jellyfin playlists for all users
-                await DeleteAllJellyfinPlaylistsForUsersAsync(dto);
+
+                // Delete all Jellyfin playlists for all users
+                await DeleteAllJellyfinPlaylistsForUsersAsync(dto, cancellationToken).ConfigureAwait(false);
                 _logger.LogInformation("Successfully disabled smart playlist: {PlaylistName}", dto.Name);
             }
             catch (Exception ex)
@@ -616,8 +623,15 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
             _logger.LogDebug("Playlist {PlaylistName} updated: OpenAccess = {OpenAccess}, Shares count = {SharesCount}",
                 playlist.Name, isFinallyPublic, playlist.Shares?.Count ?? 0);
 
-            // Refresh metadata to generate cover images
-            await RefreshPlaylistMetadataAsync(playlist, cancellationToken).ConfigureAwait(false);
+            // Handle custom images (apply if any exist, or clean up orphaned images)
+            var hasCustomPrimaryImage = dto.CustomImages != null && dto.CustomImages.ContainsKey("Primary");
+            await ApplyCustomImagesToPlaylistAsync(playlist, dto, cancellationToken).ConfigureAwait(false);
+
+            // Auto-generate Primary cover only if NO custom PRIMARY image exists
+            if (!hasCustomPrimaryImage)
+            {
+                await RefreshPlaylistMetadataAsync(playlist, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private async Task<string> CreateNewPlaylistAsync(string playlistName, Guid userId, bool isPublic, LinkedChild[] linkedChildren, SmartPlaylistDto dto, CancellationToken cancellationToken)
@@ -652,8 +666,15 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                 _logger.LogDebug("After update - Playlist {PlaylistName}: Shares count = {SharesCount}, Public = {Public}",
                     newPlaylist.Name, newPlaylist.Shares?.Count ?? 0, (newPlaylist.Shares?.Any() ?? false));
 
-                // Refresh metadata to generate cover images
-                await RefreshPlaylistMetadataAsync(newPlaylist, cancellationToken).ConfigureAwait(false);
+                // Handle custom images (apply if any exist)
+                var hasCustomPrimaryImage = dto.CustomImages != null && dto.CustomImages.ContainsKey("Primary");
+                await ApplyCustomImagesToPlaylistAsync(newPlaylist, dto, cancellationToken).ConfigureAwait(false);
+
+                // Auto-generate Primary cover only if NO custom PRIMARY image exists
+                if (!hasCustomPrimaryImage)
+                {
+                    await RefreshPlaylistMetadataAsync(newPlaylist, cancellationToken).ConfigureAwait(false);
+                }
 
                 return newPlaylist.Id.ToString("N");
             }
@@ -663,6 +684,167 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                 return string.Empty;
             }
         }
+
+        /// <summary>
+        /// Applies custom images from the smart list configuration to the Jellyfin playlist.
+        /// Also removes images that are no longer in CustomImages (e.g., after image type change).
+        /// </summary>
+        private async Task ApplyCustomImagesToPlaylistAsync(Playlist playlist, SmartPlaylistDto dto, CancellationToken cancellationToken)
+        {
+            if (_imageService == null || string.IsNullOrEmpty(dto.Id))
+            {
+                return;
+            }
+
+            try
+            {
+                var itemPath = playlist.ContainingFolderPath;
+                if (string.IsNullOrEmpty(itemPath) || !Directory.Exists(itemPath))
+                {
+                    _logger.LogWarning("Cannot apply custom images: playlist path is invalid: {Path}", itemPath);
+                    return;
+                }
+
+                var imageInfos = playlist.ImageInfos?.ToList() ?? [];
+                var appliedImages = new List<(string Path, ImageType Type)>();
+                var customImageTypes = new HashSet<ImageType>();
+
+                // Check if this smart list has ever had custom images uploaded through our system
+                // by checking if an image folder exists for this list (even if empty after deletions)
+                var hasOrHadSmartListImages = _imageService.HasImageFolder(dto.Id);
+
+                // Apply custom images if any exist
+                if (dto.CustomImages != null && dto.CustomImages.Count > 0)
+                {
+                    foreach (var (imageTypeName, fileName) in dto.CustomImages)
+                    {
+                        // Get the source image path from the image service
+                        var sourcePath = _imageService.GetImagePath(dto.Id, imageTypeName);
+
+                        if (string.IsNullOrEmpty(sourcePath) || !File.Exists(sourcePath))
+                        {
+                            _logger.LogWarning("Custom image not found: {ImageType} for playlist {PlaylistName}", imageTypeName, dto.Name);
+                            continue;
+                        }
+
+                        // Parse the image type
+                        if (!Enum.TryParse<ImageType>(imageTypeName, ignoreCase: true, out var imageType))
+                        {
+                            _logger.LogWarning("Invalid image type: {ImageType}", imageTypeName);
+                            continue;
+                        }
+
+                        customImageTypes.Add(imageType);
+
+                        // Determine destination filename
+                        var extension = Path.GetExtension(sourcePath);
+                        var destFileName = GetImageFileName(imageType, extension);
+                        var destPath = Path.Combine(itemPath, destFileName);
+
+                        // Copy the image to the playlist folder
+                        File.Copy(sourcePath, destPath, overwrite: true);
+                        _logger.LogDebug("Copied custom {ImageType} image to playlist: {DestPath}", imageTypeName, destPath);
+
+                        // Remove existing image of the same type
+                        var existingImage = imageInfos.FirstOrDefault(i => i.Type == imageType);
+                        if (existingImage != null)
+                        {
+                            imageInfos.Remove(existingImage);
+                        }
+
+                        // Add the new image info
+                        var imageInfo = new ItemImageInfo
+                        {
+                            Path = destPath,
+                            Type = imageType,
+                            DateModified = DateTime.UtcNow
+                        };
+                        imageInfos.Add(imageInfo);
+                        appliedImages.Add((destPath, imageType));
+                    }
+                }
+
+                // Only clean up orphaned images if this smart list has/had custom images through our system
+                // This prevents removing user-added images from Jellyfin when no smart list images were ever uploaded
+                var removedAny = false;
+                if (hasOrHadSmartListImages)
+                {
+                    removedAny = RemoveOrphanedCustomImages(playlist, itemPath, imageInfos, customImageTypes, dto.Id);
+                }
+
+                if (appliedImages.Count > 0 || removedAny)
+                {
+                    playlist.ImageInfos = imageInfos.ToArray();
+                    await playlist.UpdateToRepositoryAsync(ItemUpdateType.ImageUpdate, cancellationToken).ConfigureAwait(false);
+                    _logger.LogDebug("Applied {AppliedCount} custom image(s) to playlist '{PlaylistName}', removed orphaned: {RemovedAny}",
+                        appliedImages.Count, dto.Name, removedAny);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to apply custom images to playlist '{PlaylistName}'", dto.Name);
+            }
+        }
+
+        /// <summary>
+        /// Cleans up orphaned images from SmartLists storage that are no longer in the CustomImages dictionary.
+        /// This handles cases where image type changed (e.g., Primary -> Banner) or images were removed.
+        /// NOTE: This only cleans up SmartLists storage - it does NOT touch Jellyfin playlist images.
+        /// Jellyfin images are only removed through explicit delete operations (DeleteImageFromPlaylistAsync).
+        /// </summary>
+        /// <param name="playlist">The Jellyfin playlist (for logging).</param>
+        /// <param name="itemPath">Path to the playlist folder (unused, kept for signature compatibility).</param>
+        /// <param name="imageInfos">List of image infos (unused, kept for signature compatibility).</param>
+        /// <param name="customImageTypes">Image types currently in dto.CustomImages.</param>
+        /// <param name="smartListId">The SmartList ID (dto.Id) for checking our image storage.</param>
+        /// <returns>True if any orphaned images were found in SmartLists storage.</returns>
+        private bool RemoveOrphanedCustomImages(Playlist playlist, string itemPath, List<ItemImageInfo> imageInfos, HashSet<ImageType> customImageTypes, string smartListId)
+        {
+            if (_imageService == null || string.IsNullOrEmpty(smartListId))
+            {
+                return false;
+            }
+
+            // Get all images currently in SmartLists storage for this list
+            var storedImages = _imageService.GetImagesForSmartList(smartListId);
+            if (storedImages.Count == 0)
+            {
+                return false;
+            }
+
+            bool foundOrphans = false;
+
+            // Check each stored image - if it's not in customImageTypes, it's orphaned in our storage
+            foreach (var (imageTypeName, fileName) in storedImages)
+            {
+                if (!Enum.TryParse<ImageType>(imageTypeName, ignoreCase: true, out var imageType))
+                {
+                    continue;
+                }
+
+                // If this image type is not in the current CustomImages, it's orphaned
+                if (!customImageTypes.Contains(imageType))
+                {
+                    _logger.LogDebug("Found orphaned image in SmartLists storage: {ImageType} for playlist {PlaylistName}",
+                        imageTypeName, playlist.Name);
+                    foundOrphans = true;
+
+                    // Note: We don't delete from SmartLists storage here - that's handled by the
+                    // explicit delete API when user removes an image. This method just detects orphans.
+                    // The orphaned source file in SmartLists storage is harmless and will be cleaned
+                    // up if the smart list is deleted.
+                }
+            }
+
+            return foundOrphans;
+        }
+
+        /// <summary>
+        /// Gets the standard Jellyfin filename for an image type.
+        /// Delegates to the shared helper in SmartListImageService.
+        /// </summary>
+        private static string GetImageFileName(ImageType imageType, string extension)
+            => SmartListImageService.GetJellyfinImageFileName(imageType, extension);
 
         // Removed: legacy name-based lookup helper (no longer used after migration to JellyfinPlaylistId)
 
@@ -724,33 +906,17 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
             return _libraryManager.GetItemsResult(query).Items;
         }
 
+        /// <summary>
+        /// Refreshes playlist metadata to trigger Jellyfin's auto-generation of cover images.
+        /// This is only called when no custom Primary image is uploaded via Smart List.
+        /// Jellyfin will automatically generate a collage from playlist items.
+        /// </summary>
         private async Task RefreshPlaylistMetadataAsync(Playlist playlist, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
             try
             {
                 var directoryService = new Services.Shared.BasicDirectoryService();
-
-                // Check if playlist is empty
-                if (playlist.LinkedChildren == null || playlist.LinkedChildren.Length == 0)
-                {
-                    _logger.LogDebug("Playlist {PlaylistName} is empty - clearing any existing cover images", playlist.Name);
-
-                    // Force metadata refresh to clear existing cover images for empty playlists
-                    var clearOptions = new MetadataRefreshOptions(directoryService)
-                    {
-                        MetadataRefreshMode = MetadataRefreshMode.FullRefresh,
-                        ImageRefreshMode = MetadataRefreshMode.FullRefresh,
-                        ReplaceAllImages = true,  // Clear all existing images
-                        ReplaceAllMetadata = true  // Clear all metadata to ensure clean state,
-                    };
-
-                    await _providerManager.RefreshSingleItem(playlist, clearOptions, cancellationToken).ConfigureAwait(false);
-
-                    stopwatch.Stop();
-                    _logger.LogDebug("Cover image clearing completed for empty playlist {PlaylistName} in {ElapsedTime}ms", playlist.Name, stopwatch.ElapsedMilliseconds);
-                    return;
-                }
 
                 _logger.LogDebug("Triggering metadata refresh for playlist {PlaylistName} to generate cover image", playlist.Name);
 
@@ -759,7 +925,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                     MetadataRefreshMode = MetadataRefreshMode.Default,
                     ImageRefreshMode = MetadataRefreshMode.Default,
                     ReplaceAllMetadata = true, // Force regeneration of playlist metadata
-                    ReplaceAllImages = true   // Force regeneration of playlist cover images,
+                    ReplaceAllImages = true   // Don't replace existing images - preserves user-uploaded images in Jellyfin
                 };
 
                 await _providerManager.RefreshSingleItem(playlist, refreshOptions, cancellationToken).ConfigureAwait(false);
@@ -900,7 +1066,8 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
         /// This centralizes the deletion logic used by disable, delete, and visibility schedule operations.
         /// </summary>
         /// <param name="playlistDto">The smart playlist DTO containing Jellyfin playlist IDs to delete</param>
-        public async Task DeleteAllJellyfinPlaylistsForUsersAsync(SmartPlaylistDto playlistDto)
+        /// <param name="cancellationToken">Cancellation token</param>
+        public async Task DeleteAllJellyfinPlaylistsForUsersAsync(SmartPlaylistDto playlistDto, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(playlistDto);
 
@@ -909,7 +1076,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
             {
                 _logger.LogDebug("Deleting {Count} Jellyfin playlists for multi-user playlist '{PlaylistName}'",
                     playlistDto.UserPlaylists.Count, playlistDto.Name);
-                    
+
                 foreach (var userMapping in playlistDto.UserPlaylists)
                 {
                     if (!string.IsNullOrEmpty(userMapping.JellyfinPlaylistId))
@@ -924,7 +1091,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                                 UserId = userMapping.UserId,
                                 JellyfinPlaylistId = userMapping.JellyfinPlaylistId
                             };
-                            await DeleteAsync(tempDto);
+                            await DeleteAsync(tempDto, cancellationToken).ConfigureAwait(false);
                             _logger.LogDebug("Deleted Jellyfin playlist {JellyfinPlaylistId} for user {UserId}",
                                 userMapping.JellyfinPlaylistId, userMapping.UserId);
                         }
@@ -943,7 +1110,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                     playlistDto.JellyfinPlaylistId, playlistDto.Name);
                 try
                 {
-                    await DeleteAsync(playlistDto);
+                    await DeleteAsync(playlistDto, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

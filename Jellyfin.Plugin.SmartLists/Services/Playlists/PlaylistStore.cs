@@ -22,7 +22,9 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
         private readonly ISmartListFileSystem _fileSystem;
         private readonly ILogger<PlaylistStore>? _logger;
 
-        public PlaylistStore(ISmartListFileSystem fileSystem, ILogger<PlaylistStore>? logger = null)
+        public PlaylistStore(
+            ISmartListFileSystem fileSystem,
+            ILogger<PlaylistStore>? logger = null)
         {
             _fileSystem = fileSystem;
             _logger = logger;
@@ -45,6 +47,8 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                     var playlist = await LoadPlaylistAsync(filePath).ConfigureAwait(false);
                     if (playlist != null && playlist.Type == Core.Enums.SmartListType.Playlist)
                     {
+                        _logger?.LogDebug("PlaylistStore.GetByIdAsync: Loaded playlist {Name} with {ImageCount} custom images",
+                            playlist.Name, playlist.CustomImages?.Count ?? 0);
                         return playlist;
                     }
                 }
@@ -57,7 +61,13 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
 
             // Fallback: scan all playlists if direct lookup failed
             var allPlaylists = await GetAllAsync().ConfigureAwait(false);
-            return allPlaylists.FirstOrDefault(p => string.Equals(p.Id, id.ToString(), StringComparison.OrdinalIgnoreCase));
+            var result = allPlaylists.FirstOrDefault(p => string.Equals(p.Id, id.ToString(), StringComparison.OrdinalIgnoreCase));
+            if (result != null)
+            {
+                _logger?.LogDebug("PlaylistStore.GetByIdAsync (fallback): Loaded playlist {Name} with {ImageCount} custom images",
+                    result.Name, result.CustomImages?.Count ?? 0);
+            }
+            return result;
         }
 
         public async Task<SmartPlaylistDto[]> GetAllAsync()
@@ -71,6 +81,9 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
         public async Task<SmartPlaylistDto> SaveAsync(SmartPlaylistDto smartPlaylist)
         {
             ArgumentNullException.ThrowIfNull(smartPlaylist);
+
+            _logger?.LogDebug("PlaylistStore.SaveAsync: Saving playlist {Name} with {ImageCount} custom images",
+                smartPlaylist.Name, smartPlaylist.CustomImages?.Count ?? 0);
 
             // Ensure type is set
             smartPlaylist.Type = Core.Enums.SmartListType.Playlist;
@@ -111,6 +124,7 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                     await writer.FlushAsync().ConfigureAwait(false);
                 }
 
+
                 if (File.Exists(filePath))
                 {
                     // Replace is atomic on the same volume
@@ -120,6 +134,8 @@ namespace Jellyfin.Plugin.SmartLists.Services.Playlists
                 {
                     File.Move(tempPath, filePath);
                 }
+
+                _logger?.LogDebug("PlaylistStore.SaveAsync: File written successfully to {FilePath}", filePath);
 
                 // After successfully saving to new location, delete legacy file if it exists
                 // This migrates the playlist from old directory to new directory
