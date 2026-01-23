@@ -1578,7 +1578,7 @@
             '<button type="button" class="playlist-quick-action-btn kebab-btn" data-playlist-id="' + SmartLists.escapeHtmlAttribute(playlistId) + '" title="Actions">' +
             '<span class="material-icons">more_vert</span>' +
             '</button>' +
-            '<div class="playlist-kebab-menu" data-playlist-id="' + SmartLists.escapeHtmlAttribute(playlistId) + '">' +
+            '<div class="playlist-kebab-menu paperList" data-playlist-id="' + SmartLists.escapeHtmlAttribute(playlistId) + '">' +
             '<button type="button" class="playlist-kebab-menu-item kebab-edit-btn" data-playlist-id="' + SmartLists.escapeHtmlAttribute(playlistId) + '" data-playlist-name="' + SmartLists.escapeHtmlAttribute(playlist.Name || '') + '">' +
             '<span class="material-icons">edit</span><span>Edit</span>' +
             '</button>' +

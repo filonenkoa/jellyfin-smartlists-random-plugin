@@ -1885,7 +1885,6 @@
                 min-width: 150px;
                 background: color-mix(in srgb, var(--jf-palette-background-paper) 95%, transparent);
                 border: 1px solid var(--jf-palette-divider);
-                border-radius: 4px;
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
                 z-index: 1000;
                 display: none;
