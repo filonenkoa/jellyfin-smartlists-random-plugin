@@ -494,8 +494,7 @@
                 border: '1px solid var(--jf-palette-divider)',
                 padding: '1.5em',
                 width: '90%',
-                maxWidth: '400px',
-                borderRadius: '4px'
+                maxWidth: '400px'
             },
             backdrop: {
                 position: 'fixed',
