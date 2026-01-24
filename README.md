@@ -20,7 +20,7 @@ This plugin allows you to create dynamic playlists and collections based on a se
 - **Automatic Updates** - Playlists and collections refresh automatically on library updates, playback status changes, or via scheduled tasks
 - **Refresh Status & Statistics** - Monitor ongoing refresh operations with real-time progress, view refresh history, and track statistics for all your lists
 - **Media Types** - Works with all Jellyfin media types
-- **End User Config Page** - Let regular users manage their own playlists from the home screen (requires [Plugin Pages](https://github.com/IAmParadox27/jellyfin-plugin-pages) and [File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) plugins)
+- **End User Config Page** - Let regular users manage their own smart lists from the home screen (requires [Plugin Pages](https://github.com/IAmParadox27/jellyfin-plugin-pages) and [File Transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation) plugins)
 - **And more** - [View the documentation](https://jellyfin-smartlists-plugin.dinsten.se) to see all features
 
 ## 🚀 Quick Start
