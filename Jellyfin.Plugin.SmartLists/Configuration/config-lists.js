@@ -1633,10 +1633,10 @@
                 '</tr>' :
                 ''
             ) +
-            // Hide User(s) property on user pages
+            // Hide Users property on user pages
             (!isUserPage ?
                 '<tr style="border-bottom: 1px solid var(--jf-palette-divider);">' +
-                '<td style="padding: 0.5em 0.75em; font-weight: bold; opacity: 0.8; width: 40%; border-right: 1px solid var(--jf-palette-divider);">User(s)</td>' +
+                '<td style="padding: 0.5em 0.75em; font-weight: bold; opacity: 0.8; width: 40%; border-right: 1px solid var(--jf-palette-divider);">Users</td>' +
                 '<td style="padding: 0.5em 0.75em; ">' + eUserName + '</td>' +
                 '</tr>' :
                 ''

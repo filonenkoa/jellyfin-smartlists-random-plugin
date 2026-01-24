@@ -95,7 +95,7 @@ For **Collections**, the user selection works differently because collections do
 In the SmartLists configuration interface:
 
 ### For Playlists
-1. Click on the **Playlist User(s)** multi-select dropdown
+1. Click on the **Playlist Users** multi-select dropdown
 2. Check the boxes for the users you want to create playlists for
 3. At least one user must be selected
 4. Each selected user will get their own personalized playlist
