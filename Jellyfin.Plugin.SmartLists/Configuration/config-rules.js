@@ -294,7 +294,7 @@
         // Add placeholder option
         const placeholderOption = document.createElement('option');
         placeholderOption.value = '';
-        placeholderOption.textContent = '-- Select Unit --';
+        placeholderOption.textContent = '-- Unit --';
         placeholderOption.disabled = true;
         placeholderOption.selected = true;
         unitSelect.appendChild(placeholderOption);
