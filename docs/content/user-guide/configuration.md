@@ -77,6 +77,24 @@ Before creating your first list, it's important to understand the differences be
 - **Can Contain Collections**: Unlike playlists, collections can contain other collection objects (creating "meta-collections") when using the "Include collections only" option with the Collection name field
 - **Use cases**: Organizing related content for browsing (e.g., "Action Movies", "Holiday Collection", "Director's Collection")
 
+### Converting Between Types
+
+You can convert an existing playlist to a collection (or vice versa) at any time:
+
+- **Single list**: When editing a list, change the **Type** dropdown from "Playlist" to "Collection" (or vice versa) and save
+- **Bulk conversion**: In the Manage Lists tab, select multiple lists and use the bulk action buttons to convert them all at once
+
+When converting:
+
+- The smart list configuration (rules, sorting, limits, etc.) is preserved
+- The old Jellyfin playlist/collection is deleted
+- A new Jellyfin playlist/collection of the target type is created (if the list is enabled)
+- Custom images uploaded through SmartLists are preserved
+
+!!! note "Conversion Considerations"
+    - Converting a **multi-user playlist** to a collection will delete all user-specific Jellyfin playlists and create a single server-wide collection
+    - Converting a **collection** to a playlist will create a playlist for the reference user only
+
 #### Automatic Image Generation
 
 SmartLists automatically generates cover images for collections when no custom images have been provided. Auto-generation occurs only if:
@@ -176,7 +194,7 @@ View and edit your smart playlists and collections:
 - **Advanced Filtering**: Filter by list type, media type, visibility and user
 - **Real-time Search**: Search all properties in real-time
 - **Flexible Sorting**: Sort by name, list creation date, last refreshed, or enabled status
-- **Bulk Operations**: Select multiple lists to enable, disable, or delete them simultaneously
+- **Bulk Operations**: Select multiple lists to enable, disable, delete, or convert them simultaneously
 - **Detailed View**: Expand lists to see rules, settings, creation date, and other properties
 - **Quick Actions**: Edit, clone, refresh, or delete individual lists with confirmation dialogs
 - **Smart Selection**: Select all, expand all, or clear selections with intuitive controls
