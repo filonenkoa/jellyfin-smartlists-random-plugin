@@ -36,8 +36,12 @@ namespace Jellyfin.Plugin.SmartLists
             serviceCollection.AddSingleton<PlaylistService>();
             serviceCollection.AddSingleton<CollectionService>();
 
-            // Register scheduled task for cleanup
+            // Register backup service
+            serviceCollection.AddSingleton<IBackupService, BackupService>();
+
+            // Register scheduled tasks
             serviceCollection.AddSingleton<MediaBrowser.Model.Tasks.IScheduledTask, CleanupTask>();
+            serviceCollection.AddSingleton<MediaBrowser.Model.Tasks.IScheduledTask, BackupTask>();
 
             // Register RefreshQueueService as singleton
             serviceCollection.AddSingleton<RefreshQueueService>(sp =>

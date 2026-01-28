@@ -971,14 +971,37 @@
                     SmartLists.loadPlaylistList(page);
                 }
             }
-            if (target.closest('#exportPlaylistsBtn')) {
-                if (SmartLists.exportPlaylists) {
-                    SmartLists.exportPlaylists();
+            if (target.closest('#createBackupBtn')) {
+                if (SmartLists.createBackup) {
+                    SmartLists.createBackup();
                 }
             }
-            if (target.closest('#importPlaylistsBtn')) {
-                if (SmartLists.importPlaylists) {
-                    SmartLists.importPlaylists(page);
+            if (target.closest('#restoreBtn')) {
+                if (SmartLists.uploadAndRestore) {
+                    SmartLists.uploadAndRestore(page);
+                }
+            }
+            if (target.closest('#refreshBackupListBtn')) {
+                if (SmartLists.loadBackupList) {
+                    SmartLists.loadBackupList();
+                }
+            }
+            if (target.closest('.backup-restore-btn')) {
+                const restoreFilename = target.closest('.backup-restore-btn').getAttribute('data-filename');
+                if (restoreFilename && SmartLists.showBackupRestoreConfirm) {
+                    SmartLists.showBackupRestoreConfirm(restoreFilename);
+                }
+            }
+            if (target.closest('.backup-download-btn')) {
+                const downloadFilename = target.closest('.backup-download-btn').getAttribute('data-filename');
+                if (downloadFilename && SmartLists.downloadBackup) {
+                    SmartLists.downloadBackup(downloadFilename);
+                }
+            }
+            if (target.closest('.backup-delete-btn')) {
+                const deleteFilename = target.closest('.backup-delete-btn').getAttribute('data-filename');
+                if (deleteFilename && SmartLists.showBackupDeleteConfirm) {
+                    SmartLists.showBackupDeleteConfirm(deleteFilename);
                 }
             }
             if (target.closest('#addImageBtn')) {
@@ -1272,13 +1295,14 @@
             }, SmartLists.getEventListenerOptions(pageSignal));
         }
 
-        // Add import drop zone event listeners
-        const importFileInput = page.querySelector('#importPlaylistsFile');
-        const importDropZone = page.querySelector('#importDropZone');
-        const importDropZoneContent = page.querySelector('#importDropZoneContent');
-        const importFileSelected = page.querySelector('#importFileSelected');
-        const selectedFileName = page.querySelector('#selectedFileName');
-        const importCancelBtn = page.querySelector('#importCancelBtn');
+        // Add restore drop zone event listeners
+        const restoreFileInput = page.querySelector('#restoreFile');
+        const restoreDropZone = page.querySelector('#restoreDropZone');
+        const restoreDropZoneContent = page.querySelector('#restoreDropZoneContent');
+        const restoreFileSelected = page.querySelector('#restoreFileSelected');
+        const restoreSelectedFileName = page.querySelector('#restoreSelectedFileName');
+        const restoreSelectedListCount = page.querySelector('#restoreSelectedListCount');
+        const restoreCancelBtn = page.querySelector('#restoreCancelBtn');
 
         // Get CSS variable values for dynamic styling
         var themeColors = SmartLists.getThemeColors();
@@ -1288,49 +1312,79 @@
         var successBg = themeColors.successBg;
         var primaryBg = themeColors.primaryBg;
 
-        function showFileSelectedState(fileName) {
-            if (importDropZoneContent) importDropZoneContent.style.display = 'none';
-            if (importFileSelected) importFileSelected.style.display = 'block';
-            if (selectedFileName) selectedFileName.textContent = fileName;
-            if (importDropZone) {
-                importDropZone.style.borderColor = successColor;
-                importDropZone.style.borderStyle = 'solid';
-                importDropZone.style.background = successBg;
-            }
-        }
-
-        function resetDropZone() {
-            if (importFileInput) importFileInput.value = '';
-            if (importDropZoneContent) importDropZoneContent.style.display = 'block';
-            if (importFileSelected) importFileSelected.style.display = 'none';
-            if (selectedFileName) selectedFileName.textContent = '';
-            if (importDropZone) {
-                importDropZone.style.borderColor = dividerColor;
-                importDropZone.style.borderStyle = 'dashed';
-                importDropZone.style.background = 'transparent';
-            }
-        }
-
-        if (importFileInput) {
-            importFileInput.addEventListener('change', function () {
-                if (this.files && this.files.length > 0) {
-                    showFileSelectedState(this.files[0].name);
+        function showRestoreFileSelectedState(fileName, listCount) {
+            if (restoreDropZoneContent) restoreDropZoneContent.style.display = 'none';
+            if (restoreFileSelected) restoreFileSelected.style.display = 'block';
+            if (restoreSelectedFileName) restoreSelectedFileName.textContent = fileName;
+            if (restoreSelectedListCount) {
+                if (listCount !== undefined && listCount >= 0) {
+                    restoreSelectedListCount.textContent = listCount + ' list' + (listCount !== 1 ? 's' : '') + ' in backup';
+                } else if (listCount === -1) {
+                    restoreSelectedListCount.textContent = 'Unable to read backup contents';
                 } else {
-                    resetDropZone();
+                    restoreSelectedListCount.textContent = 'Analyzing...';
+                }
+            }
+            if (restoreDropZone) {
+                restoreDropZone.style.borderColor = successColor;
+                restoreDropZone.style.borderStyle = 'solid';
+                restoreDropZone.style.background = successBg;
+            }
+        }
+
+        function resetRestoreDropZone() {
+            if (restoreFileInput) restoreFileInput.value = '';
+            if (restoreDropZoneContent) restoreDropZoneContent.style.display = 'block';
+            if (restoreFileSelected) restoreFileSelected.style.display = 'none';
+            if (restoreSelectedFileName) restoreSelectedFileName.textContent = '';
+            if (restoreSelectedListCount) restoreSelectedListCount.textContent = '';
+            if (restoreDropZone) {
+                restoreDropZone.style.borderColor = dividerColor;
+                restoreDropZone.style.borderStyle = 'dashed';
+                restoreDropZone.style.background = 'transparent';
+            }
+        }
+
+        if (restoreFileInput) {
+            restoreFileInput.addEventListener('change', function () {
+                if (this.files && this.files.length > 0) {
+                    var file = this.files[0];
+                    showRestoreFileSelectedState(file.name);
+                    // Preview the file to get list count
+                    if (SmartLists.previewBackupFile) {
+                        SmartLists.previewBackupFile(file)
+                            .then(function (preview) {
+                                if (restoreSelectedListCount) {
+                                    var count = preview.listCount;
+                                    if (count >= 0) {
+                                        restoreSelectedListCount.textContent = count + ' list' + (count !== 1 ? 's' : '') + ' in backup';
+                                    } else {
+                                        restoreSelectedListCount.textContent = 'Unable to read backup contents';
+                                    }
+                                }
+                            })
+                            .catch(function () {
+                                if (restoreSelectedListCount) {
+                                    restoreSelectedListCount.textContent = '';
+                                }
+                            });
+                    }
+                } else {
+                    resetRestoreDropZone();
                 }
             }, SmartLists.getEventListenerOptions(pageSignal));
         }
 
-        if (importDropZone) {
+        if (restoreDropZone) {
             // Click to browse
-            importDropZone.addEventListener('click', function (e) {
+            restoreDropZone.addEventListener('click', function (e) {
                 // Don't trigger file browser if clicking on buttons
                 if (e.target.closest('button')) return;
-                if (importFileInput) importFileInput.click();
+                if (restoreFileInput) restoreFileInput.click();
             }, SmartLists.getEventListenerOptions(pageSignal));
 
             // Drag and drop handling
-            importDropZone.addEventListener('dragover', function (e) {
+            restoreDropZone.addEventListener('dragover', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 this.style.borderColor = primaryColor;
@@ -1338,11 +1392,11 @@
                 this.style.background = primaryBg;
             }, SmartLists.getEventListenerOptions(pageSignal));
 
-            importDropZone.addEventListener('dragleave', function (e) {
+            restoreDropZone.addEventListener('dragleave', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 // Restore appropriate state
-                if (importFileInput && importFileInput.files && importFileInput.files.length > 0) {
+                if (restoreFileInput && restoreFileInput.files && restoreFileInput.files.length > 0) {
                     this.style.borderColor = successColor;
                     this.style.borderStyle = 'solid';
                     this.style.background = successBg;
@@ -1353,7 +1407,7 @@
                 }
             }, SmartLists.getEventListenerOptions(pageSignal));
 
-            importDropZone.addEventListener('drop', function (e) {
+            restoreDropZone.addEventListener('drop', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 var files = e.dataTransfer.files;
@@ -1363,25 +1417,285 @@
                         // Create a new DataTransfer to set files on input
                         var dataTransfer = new DataTransfer();
                         dataTransfer.items.add(file);
-                        importFileInput.files = dataTransfer.files;
-                        showFileSelectedState(file.name);
+                        restoreFileInput.files = dataTransfer.files;
+                        showRestoreFileSelectedState(file.name);
+                        // Preview the file to get list count
+                        if (SmartLists.previewBackupFile) {
+                            SmartLists.previewBackupFile(file)
+                                .then(function (preview) {
+                                    if (restoreSelectedListCount) {
+                                        var count = preview.listCount;
+                                        if (count >= 0) {
+                                            restoreSelectedListCount.textContent = count + ' list' + (count !== 1 ? 's' : '') + ' in backup';
+                                        } else {
+                                            restoreSelectedListCount.textContent = 'Unable to read backup contents';
+                                        }
+                                    }
+                                })
+                                .catch(function () {
+                                    if (restoreSelectedListCount) {
+                                        restoreSelectedListCount.textContent = '';
+                                    }
+                                });
+                        }
                     } else {
                         SmartLists.showNotification('Please select a ZIP file', 'warning');
-                        resetDropZone();
+                        resetRestoreDropZone();
                     }
                 }
             }, SmartLists.getEventListenerOptions(pageSignal));
         }
 
-        if (importCancelBtn) {
-            importCancelBtn.addEventListener('click', function (e) {
+        if (restoreCancelBtn) {
+            restoreCancelBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                resetDropZone();
+                resetRestoreDropZone();
             }, SmartLists.getEventListenerOptions(pageSignal));
         }
 
-        // Expose resetDropZone for use after successful import
-        SmartLists.resetImportDropZone = resetDropZone;
+        // Expose resetRestoreDropZone for use after successful restore
+        SmartLists.resetRestoreDropZone = resetRestoreDropZone;
+
+        // Initialize backup list and delete modal (admin pages only)
+        if (!SmartLists.IS_USER_PAGE && page.querySelector('#backupListTable')) {
+            SmartLists.initializeBackupFeatures(page, pageSignal);
+        }
+    };
+
+    // ===== BACKUP FEATURES =====
+
+    /**
+     * Initialize backup list and delete modal handlers
+     */
+    SmartLists.initializeBackupFeatures = function (page, pageSignal) {
+        // Load backup list on page load
+        SmartLists.loadBackupList();
+
+        // Setup backup delete modal handlers
+        var backupDeleteModal = page.querySelector('#backup-delete-modal');
+        var backupDeleteCancelBtn = page.querySelector('#backup-delete-cancel-btn');
+        var backupDeleteConfirmBtn = page.querySelector('#backup-delete-confirm-btn');
+
+        if (backupDeleteCancelBtn) {
+            backupDeleteCancelBtn.addEventListener('click', function () {
+                SmartLists.hideBackupDeleteModal();
+            }, SmartLists.getEventListenerOptions(pageSignal));
+        }
+
+        if (backupDeleteConfirmBtn) {
+            backupDeleteConfirmBtn.addEventListener('click', function () {
+                var filename = backupDeleteConfirmBtn.getAttribute('data-filename');
+                if (filename && SmartLists.deleteBackup) {
+                    SmartLists.deleteBackup(filename);
+                }
+                SmartLists.hideBackupDeleteModal();
+            }, SmartLists.getEventListenerOptions(pageSignal));
+        }
+
+        // Click on backdrop to close modal
+        if (backupDeleteModal) {
+            backupDeleteModal.addEventListener('click', function (e) {
+                if (e.target === backupDeleteModal) {
+                    SmartLists.hideBackupDeleteModal();
+                }
+            }, SmartLists.getEventListenerOptions(pageSignal));
+        }
+
+        // Setup backup restore modal handlers
+        var backupRestoreModal = page.querySelector('#backup-restore-modal');
+        var backupRestoreCancelBtn = page.querySelector('#backup-restore-cancel-btn');
+        var backupRestoreConfirmBtn = page.querySelector('#backup-restore-confirm-btn');
+
+        if (backupRestoreCancelBtn) {
+            backupRestoreCancelBtn.addEventListener('click', function () {
+                SmartLists.hideBackupRestoreModal();
+            }, SmartLists.getEventListenerOptions(pageSignal));
+        }
+
+        if (backupRestoreConfirmBtn) {
+            backupRestoreConfirmBtn.addEventListener('click', function () {
+                var filename = backupRestoreConfirmBtn.getAttribute('data-filename');
+                var overwriteCheckbox = page.querySelector('#backup-restore-overwrite-checkbox');
+                var overwrite = overwriteCheckbox && overwriteCheckbox.checked;
+                if (filename && SmartLists.restoreFromBackup) {
+                    SmartLists.restoreFromBackup(filename, page, overwrite);
+                }
+                SmartLists.hideBackupRestoreModal();
+            }, SmartLists.getEventListenerOptions(pageSignal));
+        }
+
+        // Click on backdrop to close restore modal
+        if (backupRestoreModal) {
+            backupRestoreModal.addEventListener('click', function (e) {
+                if (e.target === backupRestoreModal) {
+                    SmartLists.hideBackupRestoreModal();
+                }
+            }, SmartLists.getEventListenerOptions(pageSignal));
+        }
+    };
+
+    /**
+     * Load and render backup list
+     */
+    SmartLists.loadBackupList = function () {
+        var loadingEl = document.querySelector('#backupListLoading');
+        var emptyEl = document.querySelector('#backupListEmpty');
+        var tableEl = document.querySelector('#backupListTable');
+        var bodyEl = document.querySelector('#backupListBody');
+
+        // Show loading state
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (tableEl) tableEl.style.display = 'none';
+
+        SmartLists.getBackups()
+            .then(function (response) {
+                var backups = response.backups || [];
+
+                if (loadingEl) loadingEl.style.display = 'none';
+
+                if (backups.length === 0) {
+                    if (emptyEl) emptyEl.style.display = 'block';
+                    if (tableEl) tableEl.style.display = 'none';
+                } else {
+                    if (emptyEl) emptyEl.style.display = 'none';
+                    if (tableEl) tableEl.style.display = 'block';
+                    SmartLists.renderBackupTable(backups, bodyEl);
+                }
+            })
+            .catch(function (error) {
+                console.error('Error loading backup list:', error);
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (emptyEl) {
+                    emptyEl.style.display = 'block';
+                    emptyEl.innerHTML = '<span class="material-icons" style="font-size: 2em; display: block; margin-bottom: 0.5em;">error_outline</span><div>Failed to load backups. Please try again.</div>';
+                }
+            });
+    };
+
+    /**
+     * Render backup table rows
+     */
+    SmartLists.renderBackupTable = function (backups, bodyEl) {
+        if (!bodyEl) return;
+
+        var html = '';
+        for (var i = 0; i < backups.length; i++) {
+            var backup = backups[i];
+            var date = new Date(backup.createdAt);
+            var formattedDatePart = date.toLocaleDateString();
+            var formattedTimePart = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            var formattedSize = SmartLists.formatFileSize(backup.sizeBytes);
+            var escapedFilename = SmartLists.escapeHtmlAttribute(backup.filename);
+
+            var listCountDisplay = backup.listCount >= 0 ? String(backup.listCount) : '-';
+
+            html += '<tr style="border-bottom: 1px solid var(--jf-palette-divider);">';
+            html += '<td style="padding: 0.5em 0.75em; font-family: monospace; font-size: 0.85em; word-break: break-all;">' + SmartLists.escapeHtml(backup.filename) + '</td>';
+            html += '<td style="padding: 0.5em 0.75em;"><span style="white-space: nowrap;">' + SmartLists.escapeHtml(formattedDatePart) + '</span> <span style="white-space: nowrap; opacity: 0.7;">' + SmartLists.escapeHtml(formattedTimePart) + '</span></td>';
+            html += '<td style="padding: 0.5em 0.5em; text-align: center; white-space: nowrap;">' + SmartLists.escapeHtml(listCountDisplay) + '</td>';
+            html += '<td style="padding: 0.5em 0.5em; text-align: right; white-space: nowrap;">' + SmartLists.escapeHtml(formattedSize) + '</td>';
+            html += '<td style="padding: 0.5em 0.75em; text-align: center; white-space: nowrap;">';
+            html += '<button is="emby-button" type="button" class="backup-restore-btn emby-button raised" data-filename="' + escapedFilename + '" title="Restore" style="padding: 0.3em 0.6em; margin: 0 0.2em; min-width: auto;">';
+            html += '<span class="material-icons" style="font-size: 1.1em; vertical-align: middle;">restore</span>';
+            html += '</button>';
+            html += '<button is="emby-button" type="button" class="backup-download-btn emby-button raised" data-filename="' + escapedFilename + '" title="Download" style="padding: 0.3em 0.6em; margin: 0 0.2em; min-width: auto;">';
+            html += '<span class="material-icons" style="font-size: 1.1em; vertical-align: middle;">download</span>';
+            html += '</button>';
+            html += '<button is="emby-button" type="button" class="backup-delete-btn emby-button raised danger" data-filename="' + escapedFilename + '" title="Delete" style="padding: 0.3em 0.6em; margin: 0 0.2em; min-width: auto;">';
+            html += '<span class="material-icons" style="font-size: 1.1em; vertical-align: middle;">close</span>';
+            html += '</button>';
+            html += '</td>';
+            html += '</tr>';
+        }
+
+        bodyEl.innerHTML = html;
+    };
+
+    /**
+     * Format file size in human readable format
+     */
+    SmartLists.formatFileSize = function (bytes) {
+        if (bytes === 0) return '0 B';
+        var k = 1024;
+        var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        var i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    };
+
+    /**
+     * Show backup delete confirmation modal
+     */
+    SmartLists.showBackupDeleteConfirm = function (filename) {
+        var modal = document.querySelector('#backup-delete-modal');
+        var filenameEl = document.querySelector('#backup-delete-filename');
+        var confirmBtn = document.querySelector('#backup-delete-confirm-btn');
+
+        if (filenameEl) {
+            filenameEl.textContent = filename;
+        }
+        if (confirmBtn) {
+            confirmBtn.setAttribute('data-filename', filename);
+        }
+        if (modal) {
+            // Apply modal styles using centralized configuration
+            var modalContainer = modal.querySelector('.custom-modal-container');
+            if (modalContainer && SmartLists.applyStyles && SmartLists.STYLES && SmartLists.STYLES.modal) {
+                SmartLists.applyStyles(modalContainer, SmartLists.STYLES.modal.container);
+                SmartLists.applyStyles(modal, SmartLists.STYLES.modal.backdrop);
+            }
+            modal.classList.remove('hide');
+        }
+    };
+
+    /**
+     * Hide backup delete confirmation modal
+     */
+    SmartLists.hideBackupDeleteModal = function () {
+        var modal = document.querySelector('#backup-delete-modal');
+        if (modal) {
+            modal.classList.add('hide');
+        }
+    };
+
+    /**
+     * Show backup restore confirmation modal
+     */
+    SmartLists.showBackupRestoreConfirm = function (filename) {
+        var modal = document.querySelector('#backup-restore-modal');
+        var filenameEl = document.querySelector('#backup-restore-filename');
+        var confirmBtn = document.querySelector('#backup-restore-confirm-btn');
+        var overwriteCheckbox = document.querySelector('#backup-restore-overwrite-checkbox');
+
+        if (filenameEl) {
+            filenameEl.textContent = filename;
+        }
+        if (confirmBtn) {
+            confirmBtn.setAttribute('data-filename', filename);
+        }
+        // Reset overwrite checkbox to unchecked by default
+        if (overwriteCheckbox) {
+            overwriteCheckbox.checked = false;
+        }
+        if (modal) {
+            // Apply modal styles using centralized configuration
+            var modalContainer = modal.querySelector('.custom-modal-container');
+            if (modalContainer && SmartLists.applyStyles && SmartLists.STYLES && SmartLists.STYLES.modal) {
+                SmartLists.applyStyles(modalContainer, SmartLists.STYLES.modal.container);
+                SmartLists.applyStyles(modal, SmartLists.STYLES.modal.backdrop);
+            }
+            modal.classList.remove('hide');
+        }
+    };
+
+    /**
+     * Hide backup restore confirmation modal
+     */
+    SmartLists.hideBackupRestoreModal = function () {
+        var modal = document.querySelector('#backup-restore-modal');
+        if (modal) {
+            modal.classList.add('hide');
+        }
     };
 
     // ===== PLAYLIST NAMING =====
@@ -1495,6 +1809,22 @@
                 // Store allowed users to be applied when multi-select is initialized
                 // (loadAllowedUsersMultiSelect will apply these after loading users)
                 page._pendingAllowedUserPageUsers = config.AllowedUserPageUsers;
+            }
+
+            // Load backup settings
+            var backupEnabledEl = page.querySelector('#backupEnabled');
+            if (backupEnabledEl) {
+                backupEnabledEl.checked = config.BackupEnabled || false;
+            }
+
+            var backupRetentionEl = page.querySelector('#backupRetentionCount');
+            if (backupRetentionEl) {
+                backupRetentionEl.value = config.BackupRetentionCount !== undefined && config.BackupRetentionCount !== null ? config.BackupRetentionCount : 7;
+            }
+
+            var backupPathEl = page.querySelector('#backupCustomPath');
+            if (backupPathEl) {
+                backupPathEl.value = config.BackupCustomPath || '';
             }
 
             // Load schedule configuration values
@@ -1669,6 +1999,21 @@
             // Save allowed users for user page access
             const allowedUserIds = SmartLists.getSelectedItems ? SmartLists.getSelectedItems(page, 'allowedUsersMultiSelect', 'allowed-users-checkbox') : [];
             config.AllowedUserPageUsers = allowedUserIds && allowedUserIds.length > 0 ? allowedUserIds : null;
+
+            // Save backup settings
+            var backupEnabledCheckbox = page.querySelector('#backupEnabled');
+            config.BackupEnabled = backupEnabledCheckbox ? backupEnabledCheckbox.checked : false;
+
+            var backupRetentionInput = page.querySelector('#backupRetentionCount');
+            if (backupRetentionInput && backupRetentionInput.value) {
+                var parsedRetention = parseInt(backupRetentionInput.value, 10);
+                config.BackupRetentionCount = (isNaN(parsedRetention) || parsedRetention < 1) ? 7 : parsedRetention;
+            } else {
+                config.BackupRetentionCount = 7;
+            }
+
+            var backupPathInput = page.querySelector('#backupCustomPath');
+            config.BackupCustomPath = backupPathInput ? (backupPathInput.value.trim() || null) : null;
 
             apiClient.updatePluginConfiguration(SmartLists.getPluginId(), config).then(function () {
                 Dashboard.hideLoadingMsg();
@@ -2064,10 +2409,14 @@
             });
             
             SmartLists.initPage(page);
-            
+
             // Re-apply list type visibility after cleanup
             if (page._pageInitialized) {
                 SmartLists.handleListTypeChange(page);
+                // Reload backup list when navigating back to the page (admin pages only)
+                if (!SmartLists.IS_USER_PAGE && SmartLists.loadBackupList) {
+                    SmartLists.loadBackupList();
+                }
             }
         }
     });
