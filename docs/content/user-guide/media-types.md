@@ -4,74 +4,17 @@ When creating a smart list, you must select at least one **Media Type** to speci
 
 ## Available Media Types
 
-SmartLists supports the following media types:
-
-### Movies
-- **Jellyfin Library Type**: Movies
-- **Description**: Feature films and movie content
-- **Example Use Cases**: 
-  - Action movies from the 90s
-  - Unwatched movies rated above 8.0
-  - Recently added movies
-
-### Episodes (TV Shows)
-- **Jellyfin Library Type**: Shows
-- **Description**: Individual TV show episodes
-- **Example Use Cases**:
-  - Next unwatched episodes from favorite series
-  - Recently aired episodes
-  - Episodes from specific genres
-
-### Series (TV Shows)
-- **Jellyfin Library Type**: Shows
-- **Description**: Entire TV series (not individual episodes, works only for collections)
-- **Example Use Cases**:
-  - TV series by genre
-  - Ongoing series
-  - Series with high ratings
-
-### Audio (Music)
-- **Jellyfin Library Type**: Music
-- **Description**: Music tracks and songs
-- **Example Use Cases**:
-  - Songs from specific artists
-  - Recently played music
-  - Favorite tracks
-
-### Music Videos
-- **Jellyfin Library Type**: Music Videos
-- **Description**: Music video content
-- **Example Use Cases**:
-  - Music videos from specific artists
-  - Recently added music videos
-
-### Video (Home Videos)
-- **Jellyfin Library Type**: Home Videos and Photos
-- **Description**: Personal video content
-- **Example Use Cases**:
-  - Home videos from specific years
-  - Recently added home videos
-
-### Photo (Home Photos)
-- **Jellyfin Library Type**: Home Videos and Photos
-- **Description**: Photo content
-- **Example Use Cases**:
-  - Photos from specific dates
-  - Recently added photos
-
-### Books
-- **Jellyfin Library Type**: Books
-- **Description**: E-book content
-- **Example Use Cases**:
-  - Books by specific authors
-  - Unread books
-
-### AudioBooks
-- **Jellyfin Library Type**: Books
-- **Description**: Audiobook content
-- **Example Use Cases**:
-  - Audiobooks by narrator
-  - Unfinished audiobooks
+| Media Type | Jellyfin Library | Description |
+|------------|------------------|-------------|
+| **Movies** | Movies | Feature films and movie content |
+| **Episodes** | Shows | Individual TV show episodes |
+| **Series** | Shows | Entire TV series (collections only, not individual episodes) |
+| **Audio** | Music | Music tracks and songs |
+| **Music Videos** | Music Videos | Music video content |
+| **Video** | Home Videos and Photos | Personal video content |
+| **Photo** | Home Videos and Photos | Photo content |
+| **Books** | Books | E-book content |
+| **AudioBooks** | Books | Audiobook content |
 
 ## Important Notes
 

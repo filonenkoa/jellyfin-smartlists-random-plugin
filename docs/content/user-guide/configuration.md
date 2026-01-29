@@ -1,61 +1,24 @@
 # Configuration
 
-SmartLists features a modern web-based configuration interface accessible in two ways:
+## Configuration Pages
 
-## Access Levels
+SmartLists has two configuration pages with different capabilities:
 
-### User Page (For Regular Users)
-
-Regular users can access SmartLists directly from their Jellyfin home screen:
-
-- **Location**: Click "SmartLists" in the main sidebar (home screen)
-- **Available Features**:
-  - Create and manage their own personal playlists
-  - Create server-wide collections (requires Jellyfin "Manage Collections" permission)
-  - Edit and clone their own lists
-  - Refresh their lists manually
-- **Limitations**:
-  - Can only see and manage lists they own
-  - Cannot access other users' playlists
-  - Cannot modify global plugin settings
-  - Cannot backup/restore list configurations
-  - No Status tab (refresh happens in background)
+| Feature | User Page | Admin Page |
+|---------|-----------|------------|
+| **Location** | Home screen sidebar | Dashboard → Plugins → SmartLists |
+| Create/edit own playlists | ✅ | ✅ |
+| Create collections | ✅ (requires permission) | ✅ |
+| View/edit other users' lists | ❌ | ✅ |
+| Global plugin settings | ❌ | ✅ |
+| Backup & restore | ❌ | ✅ |
+| Status tab with statistics | ❌ | ✅ |
+| Bulk operations | ✅ (own lists) | ✅ (all lists) |
 
 !!! note "Collection Permissions"
-    To create collections as a regular user, you must have the **"Manage Collections"** permission in Jellyfin. This permission can be granted by an administrator in:
-    
+    Regular users need the **"Manage Collections"** permission to create collections:
+
     **Dashboard → Users → [Select User] → Profile → Allow this user to manage the server's shared collections**
-    
-    Without this permission, users can only create playlists.
-
-### Admin Page (For Administrators)
-
-Administrators have full access to SmartLists through the plugin settings:
-
-- **Location**: Dashboard → My Plugins → SmartLists (or "SmartLists" in sidebar under "Plugins")
-- **Available Features**:
-  - Create and manage all playlists and collections (server-wide)
-  - View and edit any user's lists
-  - Access global plugin settings
-  - Backup and restore list configurations
-  - Configure performance settings
-  - Access bulk operations across all lists
-  - View comprehensive refresh statistics
-
-<div align="center" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 1000px; margin: 0 auto;">
-    <a href="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_create.png" target="_blank" style="cursor: pointer;">
-        <img alt="Create list page" src="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_create_cropped.png" width="240"/>
-    </a>
-    <a href="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_manage.png" target="_blank" style="cursor: pointer;">
-        <img alt="Manage lists page" src="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_manage_cropped.png" width="240"/>
-    </a>
-    <a href="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_status.png" target="_blank" style="cursor: pointer;">
-        <img alt="Status page" src="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_status.png" width="240"/>
-    </a>
-    <a href="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_settings.png" target="_blank" style="cursor: pointer;">
-        <img alt="Settings page" src="https://raw.githubusercontent.com/jyourstone/jellyfin-smartlists-plugin/main/images/config_page_settings_cropped.png" width="240"/>
-    </a>
-</div>
 
 ## Playlists vs Collections
 
@@ -77,24 +40,6 @@ Before creating your first list, it's important to understand the differences be
 - **Can Contain Collections**: Unlike playlists, collections can contain other collection objects (creating "meta-collections") when using the "Include collections only" option with the Collection name field
 - **Use cases**: Organizing related content for browsing (e.g., "Action Movies", "Holiday Collection", "Director's Collection")
 
-### Converting Between Types
-
-You can convert an existing playlist to a collection (or vice versa) at any time:
-
-- **Single list**: When editing a list, change the **Type** dropdown from "Playlist" to "Collection" (or vice versa) and save
-- **Bulk conversion**: In the Manage Lists tab, select multiple lists and use the bulk action buttons to convert them all at once
-
-When converting:
-
-- The smart list configuration (rules, sorting, limits, etc.) is preserved
-- The old Jellyfin playlist/collection is deleted
-- A new Jellyfin playlist/collection of the target type is created (if the list is enabled)
-- Custom images uploaded through SmartLists are preserved
-
-!!! note "Conversion Considerations"
-    - Converting a **multi-user playlist** to a collection will delete all user-specific Jellyfin playlists and create a single server-wide collection
-    - Converting a **collection** to a playlist will create a playlist for the reference user only
-
 #### Automatic Image Generation
 
 SmartLists automatically generates cover images for collections when no custom images have been provided. Auto-generation occurs only if:
@@ -103,10 +48,6 @@ SmartLists automatically generates cover images for collections when no custom i
 - No images have been uploaded directly in Jellyfin for that image type
 
 This means you can override auto-generation simply by uploading your own images through SmartLists or directly in Jellyfin.
-
-#### Automatic Image Generation Details
-
-SmartLists generates cover images for collections based on the media items they contain:
 
 ##### Primary Images (Vertical Posters)
 
@@ -131,6 +72,24 @@ SmartLists generates cover images for collections based on the media items they 
     1. **Images uploaded directly in Jellyfin** - Preserved, unless an image has been uploaded through SmartLists
     2. **Images uploaded through SmartLists** - Will overwrite any existing images of the same type
     3. **Auto-generated collages** - Created only if no custom images exist from either source
+
+### Converting Between Types
+
+You can convert an existing playlist to a collection (or vice versa) at any time:
+
+- **Single list**: When editing a list, change the **Type** dropdown from "Playlist" to "Collection" (or vice versa) and save
+- **Bulk conversion**: In the Manage Lists tab, select multiple lists and use the bulk action buttons to convert them all at once
+
+When converting:
+
+- The smart list configuration (rules, sorting, limits, etc.) is preserved
+- The old Jellyfin playlist/collection is deleted
+- A new Jellyfin playlist/collection of the target type is created (if the list is enabled)
+- Custom images uploaded through SmartLists are preserved
+
+!!! note "Conversion Considerations"
+    - Converting a **multi-user playlist** to a collection will delete all user-specific Jellyfin playlists and create a single server-wide collection
+    - Converting a **collection** to a playlist will create a playlist for the reference user only
 
 ### Custom Images
 
@@ -277,8 +236,6 @@ You can toggle this setting when creating or editing a list, or use bulk operati
 !!! info "Disabling Lists Temporarily Removes Jellyfin Playlists/Collections"
     When you **disable** a smart list, the corresponding Jellyfin playlist or collection is permanently removed from Jellyfin, including metadata. Any images uploaded through SmartLists will be kept intact and re-applied when the list is enabled again.
 
-    ### Use Cases for Disabling Lists
-
 Disabling lists can be useful for:
 
 - **Seasonal content**: Manually disable off-season lists (though [Visibility Scheduling](auto-refresh.md#visibility-scheduling) is better for this)
@@ -386,12 +343,6 @@ To transfer your smart lists to another Jellyfin server:
 1. Create a backup using **Create Backup Now** or download an existing backup
 2. Copy the ZIP file to the destination server
 3. On the destination server, use **Restore from File** to import the lists
-
-!!! tip "Backup Best Practices"
-    - Keep at least 7 days of automated backups to recover from accidental changes
-    - Create a manual backup before making significant changes to your lists
-    - For critical setups, periodically download backups to an external location
-    - Test your backups occasionally by restoring them to a test Jellyfin instance
 
 ## Performance Settings
 

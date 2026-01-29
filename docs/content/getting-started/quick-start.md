@@ -5,6 +5,7 @@
 SmartLists can be accessed in two ways depending on your user permissions:
 
 **For Regular Users:**
+
 - Navigate to your Jellyfin home screen
 - Click **"SmartLists"** in the main sidebar
 - This gives you access to create and manage your own playlists and collections
@@ -18,6 +19,7 @@ SmartLists can be accessed in two ways depending on your user permissions:
     See the [Installation Guide](installation.md#required-plugins-for-user-page) for details.
 
 **For Administrators:**
+
 - Go to **Dashboard → My Plugins → SmartLists**
 - Or click **"SmartLists"** in the sidebar under "Plugins"
 - This gives you full access to all lists and global settings
@@ -31,13 +33,13 @@ SmartLists can be accessed in two ways depending on your user permissions:
 1. **Access SmartLists**: Use one of the methods above
 2. **Navigate to Create List Tab**: Click on the "Create List" tab
 3. **Configure Your List**:
-   - Enter a name for your list
-   - Choose whether to create a Playlist or Collection
-   - Select the media type(s) you want to include
-   - Add rules to filter your content
-   - Choose sorting options
-   - Set the list owner (for playlists) or reference user (for collections)
-   - Configure other settings as needed
+    - Enter a name for your list
+    - Choose whether to create a Playlist or Collection
+    - Select the media type(s) you want to include
+    - Add rules to filter your content
+    - Choose sorting options
+    - Set the list owner (for playlists) or reference user (for collections)
+    - Configure other settings as needed
 
 !!! tip "Playlists vs Collections"
     For a detailed explanation of the differences between Playlists and Collections, see the [Configuration Guide](../user-guide/configuration.md#playlists-vs-collections).
@@ -53,6 +55,7 @@ Here's a simple example to get you started:
 **Media Type**: Movie
 
 **Rules**:
+
 - Genre contains "Action"
 - Playback Status = Unplayed
 

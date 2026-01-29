@@ -50,18 +50,18 @@ The debug logs will include detailed information about:
 When seeking help with issues, you may need to share log files. The easiest way to access logs is through the Jellyfin admin dashboard:
 
 1. **Access Logs via Admin Dashboard**:
-   - Go to **Dashboard** → **Logs**
-   - Select the log file you want to view (e.g., `log_20251109.log`)
-   - Copy the relevant log entries or download the whole log
+    - Go to **Dashboard** → **Logs**
+    - Select the log file you want to view (e.g., `log_20251109.log`)
+    - Copy the relevant log entries or download the whole log
 
 2. **Upload to Pastebin**:
-   - Go to [bin.dinsten.se](https://bin.dinsten.se/)
-   - Paste the log content (or attach the entire log file if needed)
-   - Share the paste URL when reporting issues
+    - Go to [bin.dinsten.se](https://bin.dinsten.se/)
+    - Paste the log content (or attach the entire log file if needed)
+    - Share the paste URL when reporting issues
 
 3. **For very large logs**:
-   - Focus on the time period when the issue occurred
-   - Copy only the relevant sections containing SmartLists entries
+    - Focus on the time period when the issue occurred
+    - Copy only the relevant sections containing SmartLists entries
 
 !!! tip "Privacy Note"
     Logs may contain sensitive information. Review logs before sharing and consider redacting any personal information if needed.

@@ -5,10 +5,10 @@
 For regular users to access SmartLists from their home screen, the following plugins are **required**:
 
 1. **Plugin Pages** - Enables custom pages in the Jellyfin sidebar
-   - Repository: [https://github.com/IAmParadox27/jellyfin-plugin-pages](https://github.com/IAmParadox27/jellyfin-plugin-pages)
+    - Repository: [https://github.com/IAmParadox27/jellyfin-plugin-pages](https://github.com/IAmParadox27/jellyfin-plugin-pages)
    
 2. **File Transformation** - Required dependency for Plugin Pages
-   - Repository: [https://github.com/IAmParadox27/jellyfin-plugin-file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)
+    - Repository: [https://github.com/IAmParadox27/jellyfin-plugin-file-transformation](https://github.com/IAmParadox27/jellyfin-plugin-file-transformation)
 
 !!! info "Not Required for Admin Access"
     These plugins are **only needed** if you want regular users to access SmartLists from their home screen. Administrators can always access SmartLists through Dashboard → My Plugins → SmartLists without these plugins.
@@ -18,31 +18,30 @@ For regular users to access SmartLists from their home screen, the following plu
 ## From Repository
 
 1. **Add the Repository**:
-   - Go to **Dashboard** → **Plugins** → **Repositories** (or **Plugins** → **Manage Repositories** → **New Repository**)
-   - Click **New Repository** (or the **+** button)
-   - Enter the repository URL:
+    - Go to **Dashboard** → **Plugins** → **Manage Repositories**)
+    - Click **New Repository**
+    - Enter a repository name of your choosing and the following repository URL:
      ```
      https://raw.githubusercontent.com/jyourstone/jellyfin-plugin-manifest/main/manifest.json
      ```
-   - Click **Save**
+    - Click **Save**
 
-2. **Install Required Plugins** (for user page access):
-   - First, install **File Transformation** plugin from its repository
-   - Then, install **Plugin Pages** plugin (depends on File Transformation)
-   - Installation order matters: File Transformation must be installed before Plugin Pages
-   - See repository URLs in the "Required Plugins for User Page" section above
-   - Restart Jellyfin after installing both plugins
-   - Both Plugin Pages and File Transformation must be installed
+2. **Optional: Install Plugins** for user page access:
+    - First, install **File Transformation** plugin from its repository
+    - Then, install **Plugin Pages** plugin (depends on File Transformation)
+    - Installation order matters: File Transformation must be installed before Plugin Pages
+    - See repository URLs in the "Required Plugins for User Page" section above
+    - Restart Jellyfin after installing both plugins
 
 3. **Install SmartLists Plugin**:
-   - Go to **Dashboard** → **Plugins** → **All/Available**
-   - Click **SmartLists** in the list of available plugins
-   - Click **Install**
-   - Restart Jellyfin after the plugin installation completes
+    - Go to **Dashboard** → **Plugins** → **All/Available**
+    - Click **SmartLists** in the list of available plugins
+    - Click **Install**
+    - Restart Jellyfin after the plugin installation completes
 
 ## Manual Installation
 
-Download the latest release from the [Releases page](https://github.com/jyourstone/jellyfin-smartlists-plugin/releases) and extract it to a subfolder in your Jellyfin plugins directory (for example `/config/plugins/SmartLists`) and restart Jellyfin.
+Download the latest release from the [Releases page](https://github.com/jyourstone/jellyfin-smartlists-plugin/releases) and extract it to a subfolder in your Jellyfin plugins directory (for example `/config/plugins/smartlists`) and restart Jellyfin.
 
 ## Try RC Releases (Unstable)
 

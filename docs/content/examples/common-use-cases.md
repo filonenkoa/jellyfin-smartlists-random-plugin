@@ -69,11 +69,11 @@ These examples use the **Max Items for this OR block** feature to create perfect
 Create a playlist with exactly 50% bumpers and 50% episodes:
 
 - **OR Block 1**: 
-  - **Media Type** = Trailer
-  - **Max Items for this OR block**: 50
+    - **Media Type** = Trailer
+    - **Max Items for this OR block**: 50
 - **OR Block 2**: 
-  - **Media Type** = Episode
-  - **Max Items for this OR block**: 50
+    - **Media Type** = Episode
+    - **Max Items for this OR block**: 50
 - **Sort by**: Random
 - Result: 50 random trailers mixed with 50 random episodes (100 items total)
 
@@ -81,14 +81,14 @@ Create a playlist with exactly 50% bumpers and 50% episodes:
 Get the top-rated content from different genres equally:
 
 - **OR Block 1**: 
-  - **Genre** is in "Action;Thriller"
-  - **Max Items for this OR block**: 20
+    - **Genre** is in "Action;Thriller"
+    - **Max Items for this OR block**: 20
 - **OR Block 2**: 
-  - **Genre** is in "Comedy;Romance"
-  - **Max Items for this OR block**: 20
+    - **Genre** is in "Comedy;Romance"
+    - **Max Items for this OR block**: 20
 - **OR Block 3**: 
-  - **Genre** is in "Sci-Fi;Fantasy"
-  - **Max Items for this OR block**: 20
+    - **Genre** is in "Sci-Fi;Fantasy"
+    - **Max Items for this OR block**: 20
 - **Sort by**: Community Rating (descending)
 - Result: Top 20 highest-rated items from each genre group (60 items total)
 
@@ -96,34 +96,34 @@ Get the top-rated content from different genres equally:
 Mix next episodes from different show types:
 
 - **OR Block 1**: 
-  - **Next Unwatched** = True
-  - **Genre** contains "Drama"
-  - **Max Items for this OR block**: 5
+    - **Next Unwatched** = True
+    - **Genre** contains "Drama"
+    - **Max Items for this OR block**: 5
 - **OR Block 2**: 
-  - **Next Unwatched** = True
-  - **Genre** contains "Comedy"
-  - **Max Items for this OR block**: 5
+    - **Next Unwatched** = True
+    - **Genre** contains "Comedy"
+    - **Max Items for this OR block**: 5
 - **OR Block 3**: 
-  - **Next Unwatched** = True
-  - **Genre** contains "Documentary"
-  - **Max Items for this OR block**: 3
+    - **Next Unwatched** = True
+    - **Genre** contains "Documentary"
+    - **Max Items for this OR block**: 3
 - Result: Your next 5 drama episodes, 5 comedy episodes, and 3 documentaries to watch
 
 ### Mixed Era Playlist
 Create a time-traveling playlist with content from different decades:
 
 - **OR Block 1**: 
-  - **Production Year** between 1980-1989
-  - **Max Items for this OR block**: 15
+    - **Production Year** between 1980-1989
+    - **Max Items for this OR block**: 15
 - **OR Block 2**: 
-  - **Production Year** between 1990-1999
-  - **Max Items for this OR block**: 15
+    - **Production Year** between 1990-1999
+    - **Max Items for this OR block**: 15
 - **OR Block 3**: 
-  - **Production Year** between 2000-2009
-  - **Max Items for this OR block**: 15
+    - **Production Year** between 2000-2009
+    - **Max Items for this OR block**: 15
 - **OR Block 4**: 
-  - **Production Year** after 2010
-  - **Max Items for this OR block**: 15
+    - **Production Year** after 2010
+    - **Max Items for this OR block**: 15
 - **Sort by**: Random
 - Result: 15 items from each decade, shuffled together
 
@@ -131,14 +131,14 @@ Create a time-traveling playlist with content from different decades:
 Create distinct sections for different genres in one playlist:
 
 - **OR Block 1**: 
-  - **Genre** contains "Action"
-  - **Max Items for this OR block**: 10
+    - **Genre** contains "Action"
+    - **Max Items for this OR block**: 10
 - **OR Block 2**: 
-  - **Genre** contains "Comedy"
-  - **Max Items for this OR block**: 10
+    - **Genre** contains "Comedy"
+    - **Max Items for this OR block**: 10
 - **OR Block 3**: 
-  - **Genre** contains "Horror"
-  - **Max Items for this OR block**: 10
+    - **Genre** contains "Horror"
+    - **Max Items for this OR block**: 10
 - **Sort by**: Rule Block Order (primary), Community Rating descending (secondary)
 - Result: 10 top-rated action movies, then 10 top-rated comedies, then 10 top-rated horror movies - all in separate sections
 
@@ -206,4 +206,49 @@ Collections are great for organizing related content that you want to browse tog
 - **Library Name** not equals "Kids Movies"
 - **Genre** contains "Animation"
 - Creates a playlist of animated content, but excludes anything from your "Kids Movies" library
+
+## Operator Examples
+
+### Using "Is In" for Multiple Values
+
+Instead of creating multiple OR rule groups, use semicolons to match multiple values in one rule:
+
+**Before (verbose):**
+```
+Rule Group 1: Genre contains "Action", Playback Status = Unplayed
+Rule Group 2: Genre contains "Comedy", Playback Status = Unplayed
+Rule Group 3: Genre contains "Drama", Playback Status = Unplayed
+```
+
+**After (simplified):**
+```
+Rule Group 1: Genre is in "Action;Comedy;Drama", Playback Status = Unplayed
+```
+
+Both produce the same result, but the second is simpler to maintain.
+
+### Filtering by Weekday
+
+Use the **weekday** operator to filter by day of week:
+
+- **Friday Premieres**: Release Date weekday Friday
+- **Recent Monday Releases**: Release Date weekday Monday AND Release Date newer than 6 months
+- **Weekend Additions**: Date Added to Library weekday Saturday OR Date Added to Library weekday Sunday
+
+### Regex Pattern Examples
+
+Use **matches regex** with .NET syntax for advanced matching:
+
+| Goal | Pattern | Matches |
+|------|---------|---------|
+| Case-insensitive | `(?i)swe` | "swe", "Swe", "SWE" |
+| Multiple options | `(?i)(eng\|en)` | "eng", "EN", "en" |
+| Starts with | `^Action` | "Action Movie", "Action Hero" |
+| Ends with | `Movie$` | "Action Movie", "Comedy Movie" |
+| Whole word | `\bAction\b` | "Action" but not "ActionMovie" |
+
+**Finding original French films:**
+
+- **Audio Languages** matches regex `(?i)fra?` with "Must be default language" enabled
+- Matches "fr" or "fra" as default audio, excluding English films with French dubs
 

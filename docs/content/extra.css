@@ -28,3 +28,16 @@
 [data-md-color-scheme="slate"] {
   --md-typeset-a-color: #53999B;
 }
+
+/* Visual separation between major sections */
+.md-typeset h2 {
+  margin-top: 1.2em;
+  padding-top: 1.2em;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
