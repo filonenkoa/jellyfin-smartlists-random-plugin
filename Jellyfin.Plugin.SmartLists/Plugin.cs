@@ -30,8 +30,8 @@ namespace Jellyfin.Plugin.SmartLists
             Instance = null;
         }
 
-        public override Guid Id => Guid.Parse("A0A2A7B2-747A-4113-8B39-757A9D267C79");
-        public override string Name => "SmartLists";
+        public override Guid Id => Guid.Parse("7B3DBA52-2409-4C04-BF5A-29636F849C63");
+        public override string Name => "SmartListsRandom";
         public override string Description => "Create smart, rule-based playlists and collections in Jellyfin.";
 
         /// <summary>

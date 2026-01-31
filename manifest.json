@@ -1,7 +1,7 @@
 [
   {
-    "guid": "A0A2A7B2-747A-4113-8B39-757A9D267C79",
-    "name": "SmartLists",
+    "guid": "7B3DBA52-2409-4C04-BF5A-29636F849C63",
+    "name": "SmartListsRandom",
     "description": "Create smart, rule-based playlists and collections in Jellyfin with advanced shuffle modes.",
     "overview": "Create smart, rule-based playlists and collections that automatically update based on configurable rules. Features three shuffle modes: Round-Based (ensures each item plays once per round), Reshuffle on Open (reshuffles when playlist is accessed), and Simple Random Next (pure random selection). Works with all media types including movies, episodes, TV shows, and music.",
     "owner": "filonenkoa",
