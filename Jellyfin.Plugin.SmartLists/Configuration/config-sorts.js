@@ -380,7 +380,8 @@
             if (!sortBySelect || !sortBySelect.value) return; // Skip if no sort by selected
 
             let sortBy = sortBySelect.value;
-            const sortOrder = (sortBy === 'Random' || sortBy === 'NoOrder') ? 'Ascending' : (sortOrderSelect ? sortOrderSelect.value : 'Ascending');
+            const shuffleOptions = ['Random', 'Round Based Shuffle', 'Reshuffle On Open', 'Simple Random Next', 'NoOrder'];
+            const sortOrder = shuffleOptions.indexOf(sortBy) !== -1 ? 'Ascending' : (sortOrderSelect ? sortOrderSelect.value : 'Ascending');
 
             // Handle "Ignore Articles" checkbox - convert to "(Ignore Articles)" for backwards compatibility
             if ((sortBy === 'Name' || sortBy === 'SeriesName') && ignoreArticlesCheckbox && ignoreArticlesCheckbox.checked) {

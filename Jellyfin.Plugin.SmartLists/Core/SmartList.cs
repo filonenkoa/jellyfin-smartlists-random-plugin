@@ -101,8 +101,8 @@ namespace Jellyfin.Plugin.SmartLists.Core
                 Orders = dto.Order.SortOptions
                     .Select(so =>
                     {
-                        // Special handling for Random and NoOrder which don't have Ascending/Descending variants
-                        if (so.SortBy == "Random" || so.SortBy == "NoOrder")
+                        // Special handling for shuffle options which don't have Ascending/Descending variants
+                        if (so.SortBy is "Random" or "Round Based Shuffle" or "Reshuffle On Open" or "Simple Random Next" or "NoOrder")
                         {
                             return OrderFactory.CreateOrder(so.SortBy);
                         }
