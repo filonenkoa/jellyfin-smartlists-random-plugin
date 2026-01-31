@@ -28,7 +28,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Build configuration
 VERSION="10.11.0.0"
 BUILD_OUTPUT_DIR="$PROJECT_ROOT/build_output"
-PLUGIN_NAME="SmartLists"
+PLUGIN_NAME="SmartListsRandom"
 
 # Parse arguments
 BUILD_MODE="docker"
