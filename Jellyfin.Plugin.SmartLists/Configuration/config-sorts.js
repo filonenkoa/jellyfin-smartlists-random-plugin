@@ -118,8 +118,9 @@
     SmartLists.syncSortOrderUI = function(sortByValue, sortOrderContainer, sortOrderSelect) {
         if (!sortOrderContainer || !sortOrderSelect) return;
         
-        // Hide Sort Order for Random and NoOrder (they don't use ordering)
-        if (sortByValue === 'Random' || sortByValue === 'NoOrder') {
+        // Hide Sort Order for Random and shuffle options (they don't use ordering)
+        const shuffleOptions = ['Random', 'Round Based Shuffle', 'Reshuffle On Open', 'Simple Random Next', 'NoOrder'];
+        if (shuffleOptions.indexOf(sortByValue) !== -1) {
             sortOrderContainer.style.display = 'none';
         } else {
             sortOrderContainer.style.display = '';

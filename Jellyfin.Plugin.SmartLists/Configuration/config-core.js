@@ -64,6 +64,9 @@
         { value: 'Resolution', label: 'Resolution' },
         { value: 'Rule Block Order', label: 'Rule Block Order' },
         { value: 'Random', label: 'Random' },
+        { value: 'Round Based Shuffle', label: 'Round Based Shuffle' },
+        { value: 'Reshuffle On Open', label: 'Reshuffle On Open' },
+        { value: 'Simple Random Next', label: 'Simple Random Next' },
         { value: 'NoOrder', label: 'No Order' }
     ];
 
