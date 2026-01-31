@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/filonenkoa/jellyfin-smartlists-random-plugin/main/images/logo.jpg",
     "versions": [
       {
+        "version": "1.0.3",
+        "targetAbi": "10.11.0",
+        "sourceUrl": "https://github.com/filonenkoa/jellyfin-smartlists-random-plugin/releases/download/v1.0.3/Jellyfin.Plugin.SmartListsRandom_v1.0.3.zip",
+        "checksum": "AE6B3F34225F236390A5BEAF1771D349",
+        "changelog": "<!-- Release notes generated using configuration in .github/release.yml at v1.0.3 -->\n\n\n\n**Full Changelog**: https://github.com/filonenkoa/jellyfin-smartlists-random-plugin/compare/v1.0.2...v1.0.3",
+        "timestamp": "2026-01-31"
+      },
+      {
         "version": "1.0.2",
         "targetAbi": "10.11.0",
         "sourceUrl": "https://github.com/filonenkoa/jellyfin-smartlists-random-plugin/releases/download/v1.0.2/Jellyfin.Plugin.SmartListsRandom_v1.0.2.zip",
