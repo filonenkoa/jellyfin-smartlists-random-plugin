@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Jellyfin.Database.Implementations.Entities;
 using Jellyfin.Plugin.SmartLists.Services.Shared;
@@ -178,7 +179,7 @@ namespace Jellyfin.Plugin.SmartLists.Core.Orders
             var now = DateTime.UtcNow;
             // Session changes every 5 minutes
             var window = now.Ticks / TimeSpan.TicksPerMinute / 5;
-            return window.ToString();
+            return window.ToString(CultureInfo.InvariantCulture);
         }
 
         /// <summary>
